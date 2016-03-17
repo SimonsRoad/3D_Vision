@@ -7,6 +7,8 @@ classdef PointIn3D
         % Coordinates
         trueCoordinates = [x; y; z];
         noisyCoordinates = [x; y; z];
+        id;
+        noiseModel;
         
         % Flags
         
@@ -20,7 +22,9 @@ classdef PointIn3D
         function obj = PointIn3D()
             
         end
-        
+        function addNoise(noiseModel)
+            
+        end
     end
     
 end
