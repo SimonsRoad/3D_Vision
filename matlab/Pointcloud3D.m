@@ -4,17 +4,13 @@ classdef Pointcloud3D < handle
     
     properties
         
-        % Array of points
-        pointsIn3D@PointIn3D;
-        
-        % Number of points
-        numberOfPoints;
-        
-        % Scale
-        scale;
-        
-        % Shape
-        shape;
+
+
+        pointsIn3D@PointIn3D;   %> @param pointsIn3D@PointIn3D Array of type PointIn3D to store the points of the 3D pointcloud
+        numberOfPoints;         %> @param numberOfPoints Number of points in the 3D pointcloud
+        scale;                  %> @param scale Absolute scale of the simulation
+        shape;                  %> @param shape Shape of the pointcloud. Current options: cubic, spherical, planar
+
         
     end
     
@@ -22,7 +18,17 @@ classdef Pointcloud3D < handle
     
     methods
         
-        % Default constructor
+
+        %> @brief Constructor of Pointcloud3D class
+        %>
+        %> @param numberOfPoints_ Number of points in the 3D pointcloud
+        %> @param shape_ Shape of the pointcloud
+        %> @param scale_ Absolute scale of the simulation
+        %> @param mean_ Vector of means for the points
+        %> @param variance_ Vector of variances for the points
+        %>
+        %> @retval Object of type Pointcloud3D
+
         function obj = Pointcloud3D(numberOfPoints_,shape_,scale_,mean_,variance_)
             if nargin < 3
                 error('Pointcloud has to be initialized with three arguments: Number of Points, Shape of the pointcloud, and the scale')
@@ -72,7 +78,11 @@ classdef Pointcloud3D < handle
             end
         end
         
-        % Plot true pointcloud
+
+        %> @brief Plot the points in their true coordinates
+        %>
+        %> @param this Pointer to this pointcloud
+
         function plotTruePointcloud(this)
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
@@ -88,8 +98,13 @@ classdef Pointcloud3D < handle
 
         end
         
-        % Plot noisy pointcloud
-        function plotNoisyPointcloud(this)
+
+        %> @brief Plot the points in their noisy coordinates
+        %>
+        %> @param this Pointer to this pointcloud
+        %> @param plotConfidenceInterval Option wheter to plot the confidence intervals for the respective points
+        function plotNoisyPointcloud(this,plotConfidenceInterval)
+
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
             Z = zeros(this.numberOfPoints,1);
@@ -102,6 +117,21 @@ classdef Pointcloud3D < handle
             
             plot3(X',Y',Z','.','markers',10,'Color','red')
 
+            
+            if strcmp(plotConfidenceInterval,'true')
+                hold on
+                for i = 1:this.numberOfPoints
+                    [x_e,y_e,z_e] = ellipsoid(this.pointsIn3D(i).trueCoordinatesInWorldFrame(1),...
+                        this.pointsIn3D(i).trueCoordinatesInWorldFrame(2),...
+                        this.pointsIn3D(i).trueCoordinatesInWorldFrame(3),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(1),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(2),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(3));
+                    surf(x_e,y_e,z_e, 'FaceColor','red','EdgeColor','none')
+                    alpha(0.1)
+                end
+                hold off
+            end
         end
     end
 end
