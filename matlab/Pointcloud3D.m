@@ -1,0 +1,107 @@
+classdef Pointcloud3D < handle
+    
+    % Properties
+    
+    properties
+        
+        % Array of points
+        pointsIn3D@PointIn3D;
+        
+        % Number of points
+        numberOfPoints;
+        
+        % Scale
+        scale;
+        
+        % Shape
+        shape;
+        
+    end
+    
+    % Methods
+    
+    methods
+        
+        % Default constructor
+        function obj = Pointcloud3D(numberOfPoints_,shape_,scale_,mean_,variance_)
+            if nargin < 3
+                error('Pointcloud has to be initialized with three arguments: Number of Points, Shape of the pointcloud, and the scale')
+                disp('Currently implemented shapes: cubic, planar, spherical')
+                return
+            else
+                obj.numberOfPoints = numberOfPoints_;
+                obj.shape = shape_;
+                obj.scale = scale_;
+            end
+            if strcmp(obj.shape,'spherical') 
+                for i = 1:obj.numberOfPoints
+                    % Use spherical coordinates to generate random points in a sphere
+                    % Algorithm from Matlab, cited is
+                    % [1] Knuth, D. The Art of Computer Programming. Vol. 2, 3rd ed. Reading, MA: Addison-Wesley Longman, 1998, pp. 134?136.
+                    rvals = 2*rand(1)-1;
+                    elevation = asin(rvals);
+                    azimuth = 2*pi*rand(1);
+                    radius = obj.scale*rand(1).^(1/3);
+                    % Convert to Cartesian coordinates
+                    [x,y,z] = sph2cart(azimuth, elevation, radius);
+                    obj.pointsIn3D(i) = PointIn3D(x,y,z);
+                end
+            elseif strcmp(obj.shape,'cubic')
+                for i = 1:obj.numberOfPoints
+                    P = obj.scale*rand(3,1);
+                    obj.pointsIn3D(i) = PointIn3D(P(1),P(2),P(3));
+                end
+            elseif strcmp(obj.shape,'planar')
+                for i = 1:obj.numberOfPoints
+                    P = obj.scale*rand(2,1);
+                    obj.pointsIn3D(i) = PointIn3D(P(1),P(2),0);
+                end
+            else
+                error('No matching shape. Currently implemented shapes: cubic, planar, spherical')
+                return
+            end
+            for i = 1:obj.numberOfPoints
+                obj.pointsIn3D(i).setMean(mean_);
+                obj.pointsIn3D(i).setVariance(variance_);
+            end
+        end
+        
+        function addNoiseToAllPoints(this,T_WC)
+            for i = 1:this.numberOfPoints
+                this.pointsIn3D(i).addNoise(T_WC);
+            end
+        end
+        
+        % Plot true pointcloud
+        function plotTruePointcloud(this)
+            X = zeros(this.numberOfPoints,1);
+            Y = zeros(this.numberOfPoints,1);
+            Z = zeros(this.numberOfPoints,1);
+            
+            for i = 1:this.numberOfPoints
+                    X(i) = this.pointsIn3D(i).trueCoordinatesInWorldFrame(1);
+                    Y(i) = this.pointsIn3D(i).trueCoordinatesInWorldFrame(2);
+                    Z(i) = this.pointsIn3D(i).trueCoordinatesInWorldFrame(3);
+            end
+            
+            plot3(X',Y',Z','.','markers',10,'Color','blue')
+
+        end
+        
+        % Plot noisy pointcloud
+        function plotNoisyPointcloud(this)
+            X = zeros(this.numberOfPoints,1);
+            Y = zeros(this.numberOfPoints,1);
+            Z = zeros(this.numberOfPoints,1);
+            
+            for i = 1:this.numberOfPoints
+                    X(i) = this.pointsIn3D(i).noisyCoordinatesInWorldFrame(1);
+                    Y(i) = this.pointsIn3D(i).noisyCoordinatesInWorldFrame(2);
+                    Z(i) = this.pointsIn3D(i).noisyCoordinatesInWorldFrame(3);
+            end
+            
+            plot3(X',Y',Z','.','markers',10,'Color','red')
+
+        end
+    end
+end

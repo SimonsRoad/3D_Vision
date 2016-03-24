@@ -8,22 +8,25 @@ load(parameterFile);
 %% generate 3D points
 
 % Initialize random number generator
-rng(0,'twister')
+% rng(0,'twister')
 
 % Generate 3D Pointcloud
-truePointcloud3D = generateTruePointcloud3D(numberOfPoints,shape,scale);
+pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
+    anisotropicGaussianMean,anisotropicGaussianVariance);
 
 % Plot the point cloud of the true points
-visualizePointcloud3D(truePointcloud3D);
+pointcloud3D.plotTruePointcloud()
+axis vis3d
 
-
-% initialize camera
+% Initialize camera
+T_WC = [[1 0 0; 0 sqrt(3)/2 1/2; 0 -1/2 sqrt(3)/2] [0,1,1]'; zeros(1,3) 1];
 
 % add noise to 3d points
-% Note: We have to do this after we initialize the camera pose as we
-% have to add the noise in the camera frame. This is because in a realistic
-% setting, the uncertainty in depth (Z-direction of camera frame) than in
-% the other two directions of the camera frame.
+pointcloud3D.addNoiseToAllPoints(T_WC)
+
+hold on
+
+pointcloud3D.plotNoisyPointcloud()
 
 % project 3d to 2d points
 
