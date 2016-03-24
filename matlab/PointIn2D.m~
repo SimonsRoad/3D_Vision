@@ -48,14 +48,10 @@ classdef PointIn2D < handle
             R_IA = T_IA(1:3,1:3);
             R_AI = R_IA';
             t_A = T_IA(:,1:3); 
-            this.projectedCoordinates2D = K * (R_AI * noisyPoint3D_I - t_A);
-            projectedPoint2D = this.projectedCoordinates2D;
+            this.projectedCoordinates2D = K * (R_AI * noisyPoints3D_I - t_A);
         end
         
-        function point2Ddistorted = addDistortion(Point2D,k, Camera)
-           K = Camera.calculateCalibrationMatrix();
-           centerOfDistortion = [K(1,3); K(2,3)];
-           radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2)
+        function point2Ddistorted = addDistortion(Point2D,k)
            
         end
         % loadParameters(paramterFileDirectory)
