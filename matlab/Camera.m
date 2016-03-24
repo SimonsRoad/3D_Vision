@@ -22,7 +22,7 @@ classdef Camera < handle
        perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm string of algorithm used for pose estimation
        
        pointCloud3D@Pointcloud3D
-       pointCloud2D@Pointcloud2D
+       %pointCloud2D@PointIn2D
    end % Properties end
    
    methods
@@ -37,8 +37,8 @@ classdef Camera < handle
            azimutalAngle = 2*pi*rand();
            polarAngle = polarAngleMax*rand();
            
-           % Compute translation t of camera
-           t = [radius*cos(azimutalAngle)*sin(polarAngle);
+           % Camera translation vector w.r.t. world frame
+           I_C = [radius*cos(azimutalAngle)*sin(polarAngle);
                radius*sin(azimutalAngle)*sin(polarAngle);
                radius*cos(polarAngle)];
            
@@ -55,26 +55,23 @@ classdef Camera < handle
            
            % Compute the camera rotation matrix
            R_CI = (R_CK*R_KB*R_BI);
-           R_IC = R_CI';
            
            % Fill in the camera truePose 
            obj.truePose = eye(4);
-           obj.truePose(1:3,1:3) = R_IC;
-           obj.truePose(1:3,4) = t;
+           obj.truePose(1:3,1:3) = R_CI;
+           obj.truePose(1:3,4) = -(R_CI')*I_C;
            
            % Declare estimated Pose
-           obj.estimatedPose = eye(4);
-           
-       end % Camera end
+           obj.estimatedPose = eye(4);   
+       end % Camera() end
        
        
-       %> @brief Returns the plot handle of camera visualization
+       %> @brief Visualizes the camera
        %>
        %> @param figureHandle Figure number
        %> @param this Pointer of Camera object
        %>
-       %> @retval plotHandle Handle to plot3 of visualization
-       function plotHandle = visualizeCamera(figureHandle, this)
+       function visualizeCamera(this, figureHandle)
            % Get true translation and rotation from truePose
            trueTranslation = this.truePose(1:3,4);
            trueRotation = this.truePose(1:3,1:3);
@@ -85,8 +82,6 @@ classdef Camera < handle
            
            % plot the true pose visualization
            figure(figureHandle)
-           plot3(trueTranslation(1), truTanslation(2), trueTranslation(3), 'x','merker',10)
-           
        end % visualizeCamera() end
        
        
@@ -118,6 +113,5 @@ classdef Camera < handle
        function P = getEstimatedPose(this)
           P = this.estimatedPose; 
        end  % getEstimatedCameraMatrix end
-       
    end % Methods end
 end % Classdef end
