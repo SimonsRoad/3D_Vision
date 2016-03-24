@@ -5,27 +5,33 @@ classdef PointIn3D < handle
     properties
         
         % Coordinates in world frame
-        trueCoordinatesInWorldFrame;
-        homogeneousTrueCoordinatesInWorldFrame;
-        noisyCoordinatesInWorldFrame;
-        homogeneousNoisyCoordinatesInWorldFrame;
+        trueCoordinatesInWorldFrame;                %> @param trueCoordinatesInWorldFrame Coordinates of ground truth 3D point in world frame
+        homogeneousTrueCoordinatesInWorldFrame;     %> @param homogeneousTrueCoordinatesInWorldFrame Homogeneous coordinates of ground truth 3D point in world frame
+        noisyCoordinatesInWorldFrame;               %> @param noisyCoordinatesInWorldFrame Noise-ridden coordinates of 3D point in world frame
+        homogeneousNoisyCoordinatesInWorldFrame;    %> @param homogeneousNoisyCoordinatesInWorldFrame Noise ridden homogeneous coordinates in world frame
         
         % Coordinates in camera frame
-        trueCoordinatesInCameraFrame;
-        homogeneousTrueCoordinatesInCameraFrame;
-        noisyCoordinatesInCameraFrame;
-        homogeneousNoisyCoordinatesInCameraFrame;
+        trueCoordinatesInCameraFrame;               %> @param trueCoordinatesInWorldFrame Coordinates of ground truth 3D point in ca,era frame
+        homogeneousTrueCoordinatesInCameraFrame;    %> @param homogeneousTrueCoordinatesInWorldFrame Homogeneous coordinates of ground truth 3D point in camera frame
+        noisyCoordinatesInCameraFrame;              %> @param noisyCoordinatesInWorldFrame Noise-ridden coordinates of 3D point in camera frame
+        homogeneousNoisyCoordinatesInCameraFrame;   %> @param homogeneousNoisyCoordinatesInWorldFrame Noise ridden homogeneous coordinates in camera frame
         
         % Noise parameters in camera frame
-        anisotropicGaussianMean;
-        anisotropicGaussianVariance;
+        anisotropicGaussianMean;                    %> @param Vector of means for the anisotropic Gaussian noise of the 3D point
+        anisotropicGaussianVariance;                %> @param Vector of variances for the anisotropic Gaussian noise of the 3D point
     end
     
     % Methods
     
     methods
         
-        % Default constructor
+        %> @brief Constructor of class PointIn3D
+        %>
+        %> @param x Ground truth x-coordinate of the 3D point
+        %> @param y Ground truth y-coordinate of the 3D point
+        %> @param z Ground truth z-coordinate of the 3D point
+        %>
+        %> @retval obj Object of type PointIn3D
         function obj = PointIn3D(x,y,z)
             if nargin < 3
                 error('PointIn3D has to be initialized with true coordinates')
@@ -37,17 +43,32 @@ classdef PointIn3D < handle
             end
         end
         
-        % Set mean
+
+        %> @brief Set the means for the noise of this point
+        %>
+        %> @param this Pointer to this PointIn3D object
+        %> @param mean Vector of means, in camera frame
+
         function setMean(this,mean)
             this.anisotropicGaussianMean = mean;
         end
         
-        % Set variance
+
+        %> @brief Set the variances for the noise of this point
+        %>
+        %> @param this Pointer to this PointIn3D object
+        %> @param mean Vector of variances, in camera frame
+
         function setVariance(this,variance)
             this.anisotropicGaussianVariance = variance;
         end
         
-        % Add noise to this point, given the camera pose
+
+        %> @brief Add noise to this point, given the camera pose
+        %>
+        %> @param this Pointer to this PointIn3D object
+        %> @param T_WC Homogeneous transformation (in R^(4x4)) of the camera with respect to the world
+
         function addNoise(this,T_WC)
             
             % Transform true coordinates to camera frame
