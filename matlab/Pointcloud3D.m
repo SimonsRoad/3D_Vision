@@ -89,7 +89,7 @@ classdef Pointcloud3D < handle
         end
         
         % Plot noisy pointcloud
-        function plotNoisyPointcloud(this)
+        function plotNoisyPointcloud(this,plotConfidenceInterval)
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
             Z = zeros(this.numberOfPoints,1);
@@ -101,7 +101,21 @@ classdef Pointcloud3D < handle
             end
             
             plot3(X',Y',Z','.','markers',10,'Color','red')
-
+            
+            if strcmp(plotConfidenceInterval,'true')
+                hold on
+                for i = 1:this.numberOfPoints
+                    [x_e,y_e,z_e] = ellipsoid(this.pointsIn3D(i).trueCoordinatesInWorldFrame(1),...
+                        this.pointsIn3D(i).trueCoordinatesInWorldFrame(2),...
+                        this.pointsIn3D(i).trueCoordinatesInWorldFrame(3),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(1),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(2),...
+                        2.575*this.pointsIn3D(i).anisotropicGaussianVariance(3));
+                    surf(x_e,y_e,z_e, 'FaceColor','red','EdgeColor','none')
+                    alpha(0.1)
+                end
+                hold off
+            end
         end
     end
 end

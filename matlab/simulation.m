@@ -26,7 +26,7 @@ pointcloud3D.addNoiseToAllPoints(T_WC)
 
 hold on
 
-pointcloud3D.plotNoisyPointcloud()
+pointcloud3D.plotNoisyPointcloud(plotConfidenceInterval)
 
 % project 3d to 2d points
 
