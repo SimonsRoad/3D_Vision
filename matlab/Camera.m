@@ -62,6 +62,9 @@ classdef Camera < handle
            obj.truePose(1:3,1:3) = R_IC;
            obj.truePose(1:3,4) = t;
            
+           % Declare estimated Pose
+           obj.estimatedPose = eye(4);
+           
        end % Camera end
        
        
@@ -72,14 +75,19 @@ classdef Camera < handle
        %>
        %> @retval plotHandle Handle to plot3 of visualization
        function plotHandle = visualizeCamera(figureHandle, this)
-           % get true translation and rotation from truePose
+           % Get true translation and rotation from truePose
            trueTranslation = this.truePose(1:3,4);
            trueRotation = this.truePose(1:3,1:3);
            
-           % get estimated translation and rotation from estimatedPose
+           % Get estimated translation and rotation from estimatedPose
            estimatedTranslation = this.estimatedPose(1:3,4);
            estimatedRotation = this.estimatedPose(1:3,1:3);
-       end
+           
+           % plot the true pose visualization
+           figure(figureHandle)
+           plot3(trueTranslation(1), truTanslation(2), trueTranslation(3), 'x','merker',10)
+           
+       end % visualizeCamera() end
        
        
        %> @brief Returns kalibration matrix of the camera
@@ -89,7 +97,7 @@ classdef Camera < handle
        %> @retval K Kalibration matrix this
        function K = getKalibrationMatrix(this)
            K = this.K;
-       end
+       end % getKalibrationMatrix() end
        
        
        %> @brief getTruePose() returns true pose of a Camera object
