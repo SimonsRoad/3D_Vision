@@ -18,16 +18,14 @@ pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
 pointcloud3D.plotTruePointcloud()
 axis vis3d
 
-<<<<<<< HEAD
 % initialize camera
 Cam = Camera(cameraRadius, polarAngleMax);
 
 % plot the camera position and orientation
 visualizeCamera(Cam);
-=======
+
 % Initialize camera
 T_WC = [[1 0 0; 0 sqrt(3)/2 1/2; 0 -1/2 sqrt(3)/2] [0,1,1]'; zeros(1,3) 1];
->>>>>>> 687d3f19cd0b8dbe8b730257fb024c374b19218c
 
 % add noise to 3d points
 pointcloud3D.addNoiseToAllPoints(T_WC)
