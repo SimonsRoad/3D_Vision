@@ -4,8 +4,8 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 1000;
-shape = 'planar'; % Options: 'spherical', 'planar', quibic
+numberOfPoints = 500;
+shape = 'cubic'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
 cameraRadius = 2;
 polarAngleMax = pi/3;
@@ -18,8 +18,8 @@ cameraRadius = scale*cameraRadius;
 % Noise Models
 pointIn3DNoiseModel = 'anisotropicGaussian';
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
-anisotropicGaussianMean = [0.0; 0.0; 0.0];
-anisotropicGaussianVariance = [0.01; 0.01; 0.01];
+anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
+anisotropicGaussianVariance = scale*[0.001; 0.001; 0.01];
 
 %% Save Parameter File
 
