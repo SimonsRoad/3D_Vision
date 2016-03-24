@@ -52,11 +52,11 @@ classdef PointIn2D < handle
             projectedPoint2D = this.projectedCoordinates2D;
         end
         
-        function point2Ddistorted = addDistortion(Point2D,k, Camera)
+        function point2Ddistorted = addDistortion(Point2D, k, Camera)
            K = Camera.calculateCalibrationMatrix();
            centerOfDistortion = [K(1,3); K(2,3)];
-           radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2)
-           
+           radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2);
+           point2Ddistorted = (1 + k(1) * radius^2 + k(2) * radius^4 + k(3) * radius^6) * Point2D;
         end
         % loadParameters(paramterFileDirectory)
         
