@@ -79,6 +79,11 @@ classdef Camera < handle
            % get estimated translation and rotation from estimatedPose
            estimatedTranslation = this.estimatedPose(1:3,4);
            estimatedRotation = this.estimatedPose(1:3,1:3);
+           
+           % Plot camera pose with camera frame
+           figure(figureHandle)
+           cam = plotCamera('Location',trueTranslation,'Rotation',trueRotation)
+           
        end
        
        
