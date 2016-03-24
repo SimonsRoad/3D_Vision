@@ -1,4 +1,21 @@
-% generate 3D points
+%% 3D Vision Group 1: Using Lines for Pose Estimation
+clear all, close all, clc
+
+%% Load Parameters
+parameterFile = 'parameters.mat';
+load(parameterFile);
+
+%% generate 3D points
+
+% Initialize random number generator
+rng(0,'twister')
+
+% Generate 3D Pointcloud
+truePointcloud3D = generateTruePointcloud3D(numberOfPoints,shape,scale);
+
+% Plot the point cloud of the true points
+visualizePointcloud3D(truePointcloud3D);
+
 
 % initialize camera
 
