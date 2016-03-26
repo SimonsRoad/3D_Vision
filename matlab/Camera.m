@@ -31,27 +31,25 @@ classdef Camera < handle
        %> @param radius Radius of sphere the camera is on
        %> @param polarAngleMax Maximal polar angle on sphere
        %>
-       %> @retval obj
+       %> @retval obj Object of type Camera
        function obj = Camera(radius, polarAngleMax)
            % Generate random azimutalAngle and polarAngle
            azimutalAngle = 2*pi*rand();
            polarAngle = polarAngleMax*rand();
            
-           % Camera translation vector w.r.t. world frame
-           I_C = [radius*cos(azimutalAngle)*sin(polarAngle);
-               radius*sin(azimutalAngle)*sin(polarAngle);
-               radius*cos(polarAngle)];
+           % Camera translation vector w.r.t. camera frame
+           t = [0; 0; -radius];
            
            % Compute helper rotation matrix
-           R_BI = [cos(azimutalAngle), sin(azimutalAngle), 0;
+           R_BI = [cos(azimutalAngle), sin(azimutalAngle), 0; % z-rotation at phi
                -sin(azimutalAngle), cos(azimutalAngle), 0;
                0, 0, 1];
-           R_KB = [cos(pi/2-polarAngle), 0, sin(pi/2-polarAngle);
+           R_KB = [cos(-pi/2+polarAngle), 0, -sin(-pi/2+polarAngle); % y-rotation at -phi/2+theta
                0, 1, 0;
-               -sin(pi/2-polarAngle), 0, cos(pi/2-polarAngle)];
-           R_CK = [1, 0, 0;
-               0, cos(pi/2), sin(pi/2);
-               0, -sin(pi/2), cos(pi/2)];
+               sin(-pi/2+polarAngle), 0, cos(-pi/2+polarAngle)];
+           R_CK = [0, 1, 0; % camera z-axis points towards origin
+               0, 0, -1;
+               -1, 0, 0];
            
            % Compute the camera rotation matrix
            R_CI = (R_CK*R_KB*R_BI);
@@ -59,7 +57,7 @@ classdef Camera < handle
            % Fill in the camera truePose 
            obj.truePose = eye(4);
            obj.truePose(1:3,1:3) = R_CI;
-           obj.truePose(1:3,4) = -(R_CI')*I_C;
+           obj.truePose(1:3,4) = t;%-(R_CI')*I_C;
            
            % Declare estimated Pose
            obj.estimatedPose = eye(4);   
@@ -68,10 +66,12 @@ classdef Camera < handle
        
        %> @brief Visualizes the camera
        %>
-       %> @param figureHandle Figure number
        %> @param this Pointer of Camera object
+       %> @param figureHandle Figure number
        %>
-       function visualizeCamera(this, figureHandle)
+       %> @retval trueCam Handle to true camera pose plot
+       %> @retval estimatedCam Handle to estimated camera pose plot
+       function [trueCam, estimatedCam] = visualizeCamera(this, figureHandle)
            % Get true translation and rotation from truePose
            trueTranslation = this.truePose(1:3,4);
            trueRotation = this.truePose(1:3,1:3);
@@ -80,8 +80,14 @@ classdef Camera < handle
            estimatedTranslation = this.estimatedPose(1:3,4);
            estimatedRotation = this.estimatedPose(1:3,1:3);
            
-           % plot the true pose visualization
+           % plot the true pose
            figure(figureHandle)
+           trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
+           axis equal
+           
+           % plot the estimated pose
+           hold on
+           estimatedCam = plotCamera('Location',trueRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
        end % visualizeCamera() end
        
        
@@ -95,23 +101,15 @@ classdef Camera < handle
        end % getKalibrationMatrix() end
        
        
-       %> @brief getTruePose() returns true pose of a Camera object
+       %> @brief getPose() returns true and estimated pose of a Camera object
        %>
-       %> @param obj
+       %> @param this Pointer to Camera object
        %>
-       %> @retval
-       function P = getTruePose(this)
-          P = this.truePose; 
-       end % getTrueCameraMatrix end
-       
-       
-       %> @brief getEstimatedPose() returns true pose of a Camera object
-       %>
-       %> @param obj
-       %>
-       %> @retval
-       function P = getEstimatedPose(this)
-          P = this.estimatedPose; 
-       end  % getEstimatedCameraMatrix end
+       %> @retval truePose True pose of Camera object
+       %> @retval estimatedPose Estimated pose of Camera object
+       function [truePose, estimatedPose] = getPose(this)
+          truePose = this.truePose;
+          estimatedPose = this.estimatedPose;
+       end % getPose end
    end % Methods end
 end % Classdef end
