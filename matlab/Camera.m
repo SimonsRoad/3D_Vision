@@ -8,9 +8,12 @@
 % =========================================================================
 classdef Camera < handle
    properties
+       % Camera pose
        truePose                     %> @param truePose True pose of camera
        estimatedPose                %> @param estimatedPose Estimated pose of camera
-       f                            %> @param f focal length
+       
+       % Camera parameters
+       f                            %> @param f Focal length
        mx                           %> @param mx Pixel per unit length in x-direction
        my                           %> @param my Pixel per unit length in y-direction
        xResolution                  %> @param xResolution Pixel resolution in x-direction
@@ -19,11 +22,14 @@ classdef Camera < handle
        py                           %> @param py Pixel y-coordinate of principle point
        skew                         %> @param skew Skew paramater of camera sensor
        K                            %> @param K Calibration matrix
-       distortionModel              %> @param distortionModel string Distortion model
-       perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm string of algorithm used for pose estimation
+       distortionModel              %> @param distortionModel String Distortion model
        
-       pointCloud3D@Pointcloud3D
-       %pointCloud2D@PointIn2D
+       % Pose estimation algorithm
+       perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm String of algorithm used for pose estimation
+       
+       % Point clouds
+       pointCloud3D@Pointcloud3D    %> @param pointCloud3D Member of type Pointcloud3D
+       pointCloud2D@Pointcloud2D    %> @param pointCloud2D Member of type Pointcloud2D
    end % Properties end
    
    methods
@@ -105,6 +111,12 @@ classdef Camera < handle
            estimatedCam = plotCamera('Location',trueRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
        end % visualizeCamera() end
        
+       %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
+       %>
+       %> @param this Pointer to Camera object
+       function projectFrom3DTo2D(this)
+           % Project noisy 3D points to 
+       end
        
        %> @brief Calculates the camera calibration matrix
        %>
@@ -136,6 +148,6 @@ classdef Camera < handle
        function [truePose, estimatedPose] = getPose(this)
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
-       end % getPose end
-   end % Methods end
-end % Classdef end
+       end % getPose() end
+   end % methods end
+end % classdef end
