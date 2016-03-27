@@ -11,12 +11,13 @@ classdef Camera < handle
        truePose                     %> @param truePose True pose of camera
        estimatedPose                %> @param estimatedPose Estimated pose of camera
        f                            %> @param f focal length
-       kx                           %> @param kx Pixel per unit length in x-direction
-       ky                           %> @param ky Pixel per unit length in y-direction
+       mx                           %> @param mx Pixel per unit length in x-direction
+       my                           %> @param my Pixel per unit length in y-direction
        xResolution                  %> @param xResolution Pixel resolution in x-direction
        yResolution                  %> @param yResolution Pixel resolution in y-direction
-       x0                           %> @param x0 Pixel x-coordinate of principle point
-       y0                           %> @param y0 Pixel y-coordinate of principle point
+       px                           %> @param px Pixel x-coordinate of principle point
+       py                           %> @param py Pixel y-coordinate of principle point
+       skew                         %> @param skew Skew paramater of camera sensor
        K                            %> @param K Calibration matrix
        distortionModel              %> @param distortionModel string Distortion model
        perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm string of algorithm used for pose estimation
@@ -29,13 +30,24 @@ classdef Camera < handle
        %> @brief Constructor of class Camera
        %> 
        %> @param radius Radius of sphere the camera is on
-       %> @param polarAngleMax Maximal polar angle on sphere
+       %> @param azimutalAngle Azimutal angle on sphere
+       %> @param polarAngle Polar angle on sphere
+       %> @param f Focal length of camera
+       %> @param px Principle point offset in x-direction of camera frame
+       %> @param py Principle point offset in y-direction of camera frame
+       %> @param mx Pixel per unit length in x-direction of camera frame
+       %> @param my Pixel per unit length in y-direction of camera frame
+       %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, polarAngleMax)
-           % Generate random azimutalAngle and polarAngle
-           azimutalAngle = 2*pi*rand();
-           polarAngle = polarAngleMax*rand();
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, px, py, mx, my, skew)
+           % Properties
+           obj.f = f;
+           obj.px = px;
+           obj.py = py;
+           obj.mx = mx;
+           obj.my = my;
+           obj.skew = skew;
            
            % Camera translation vector w.r.t. camera frame
            t = [0; 0; -radius];
@@ -57,10 +69,13 @@ classdef Camera < handle
            % Fill in the camera truePose 
            obj.truePose = eye(4);
            obj.truePose(1:3,1:3) = R_CI;
-           obj.truePose(1:3,4) = t;%-(R_CI')*I_C;
+           obj.truePose(1:3,4) = t;
            
            % Declare estimated Pose
-           obj.estimatedPose = eye(4);   
+           obj.estimatedPose = eye(4);
+           
+           % Calculate camera calibration matrix
+           obj.calculateCalibrationMatrix();
        end % Camera() end
        
        
@@ -80,25 +95,36 @@ classdef Camera < handle
            estimatedTranslation = this.estimatedPose(1:3,4);
            estimatedRotation = this.estimatedPose(1:3,1:3);
            
-           % plot the true pose
+           % Plot the true pose
            figure(figureHandle)
            trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
            axis equal
            
-           % plot the estimated pose
+           % Plot the estimated pose
            hold on
            estimatedCam = plotCamera('Location',trueRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
        end % visualizeCamera() end
        
        
-       %> @brief Returns kalibration matrix of the camera
+       %> @brief Calculates the camera calibration matrix
+       %>
+       %> @param this Pointer to object
+       function calculateCalibrationMatrix(this)
+           % Fill in the calibration matrix
+           this.K = [this.f * this.mx, this.skew, this.px * this.mx;
+               0, this.f * this.my, this.py * this.my;
+               0, 0, 1];
+       end % calculateCalibrationMatrix() end
+       
+       
+       %> @brief Returns camera calibration matrix
        %> 
        %> @param this Pointer to Camera object
        %>
-       %> @retval K Kalibration matrix this
-       function K = getKalibrationMatrix(this)
+       %> @retval K calibration matrix this
+       function K = getCalibrationMatrix(this)
            K = this.K;
-       end % getKalibrationMatrix() end
+       end % getCalibrationMatrix() end
        
        
        %> @brief getPose() returns true and estimated pose of a Camera object
