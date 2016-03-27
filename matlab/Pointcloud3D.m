@@ -28,7 +28,6 @@ classdef Pointcloud3D < handle
         %> @param variance_ Vector of variances for the points
         %>
         %> @retval Object of type Pointcloud3D
-
         function obj = Pointcloud3D(numberOfPoints_,shape_,scale_,mean_,variance_)
             if nargin < 3
                 error('Pointcloud has to be initialized with three arguments: Number of Points, Shape of the pointcloud, and the scale')
@@ -72,6 +71,10 @@ classdef Pointcloud3D < handle
             end
         end
         
+        %> @brief
+        %>
+        %> @param this
+        %> @param T_WC
         function addNoiseToAllPoints(this,T_WC)
             for i = 1:this.numberOfPoints
                 this.pointsIn3D(i).addNoise(T_WC);
@@ -82,7 +85,6 @@ classdef Pointcloud3D < handle
         %> @brief Plot the points in their true coordinates
         %>
         %> @param this Pointer to this pointcloud
-
         function plotTruePointcloud(this)
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
@@ -132,6 +134,16 @@ classdef Pointcloud3D < handle
                 end
                 hold off
             end
+        end
+        
+        
+        %> @brief Return number of points
+        %>
+        %> @param this Pointer to this pointcloud
+        %>
+        %> retval numberOfPoints The number of points in this pointcloud
+        function numberOfPoints = getNumberOfPoints(this)
+            numberOfPoints = this.numberOfPoints;
         end
     end
 end

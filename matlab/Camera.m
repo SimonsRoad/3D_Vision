@@ -55,7 +55,7 @@ classdef Camera < handle
            obj.my = my;
            obj.skew = skew;
            
-           % Camera translation vector w.r.t. camera frame
+           % Camera translation vector w.r.t. camera frame t = R_CI * C_I
            t = [0; 0; -radius];
            
            % Compute helper rotation matrix
@@ -111,12 +111,33 @@ classdef Camera < handle
            estimatedCam = plotCamera('Location',trueRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
        end % visualizeCamera() end
        
+       
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
        %> @param this Pointer to Camera object
        function projectFrom3DTo2D(this)
-           % Project noisy 3D points to 
-       end
+           % Project noisy 3D points to 2D pixel space
+           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.truePose);
+       end % projectFrom3DTo2D() end
+       
+       
+       %> @brief Plot projected and noisy 2D points
+       %>
+       %> @param this Pointer to object
+       %> @param figureHandle Handle to figure number
+       function plot2DPoints(this, figureHandle)
+           % Open figure
+           figure(figureHandle)
+           
+           % Plot projected 2D points
+           this.pointCloud2D.plotProjectedPoints(figureHandle);
+           
+           % Plot noisy 2D points
+           hold on
+%            this.pointCloud2D.plotNoisyPoints(figureHandle);
+           hold off
+       end % plot2DPoints() end
+       
        
        %> @brief Calculates the camera calibration matrix
        %>
