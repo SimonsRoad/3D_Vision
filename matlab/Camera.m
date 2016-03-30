@@ -158,7 +158,27 @@ classdef Camera < handle
        function estimatePose(this)
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
-           this.estimatedPose(1:3,4) = -t;
+           this.estimatedPose(1:3,4) = t;
+       end
+       
+       %> @brief Calculate the error in the pose estimation
+       %>
+       %> @retval errorInTranslation This is the error in camera translation in percent
+       %> @retval errorInOrientation This is the error in orientation. The error is calculated as the sum of the acos of the scalar products of the unit vectors of the coordinate frames (todo: come up with a better way to describe this)
+       function [errorInTranslation, errorInOrientation] = computePoseError(this)
+           xTrue = this.truePose(:,1);
+           yTrue = this.truePose(:,2);
+           zTrue = this.truePose(:,3);
+           xEstimated = this.estimatedPose(:,1);
+           yEstimated = this.estimatedPose(:,2);
+           zEstimated = this.estimatedPose(:,3);
+           scalarProducts = [xTrue'*xEstimated yTrue'*yEstimated zTrue'*zEstimated];
+           % If *True = *Estimated their scalar product should be 1 as they
+           % are normalized vectors. (The acos of 1 is 0)
+           errorInOrientation = sum(abs(acos(scalarProducts)))*180/pi;
+           trueTranslation = this.truePose(:,4);
+           estimatedTranslation = this.estimatedPose(:,4);
+           errorInTranslation = norm(trueTranslation-estimatedTranslation)/norm(trueTranslation)*100;
        end
        
        %> @brief Returns camera calibration matrix
