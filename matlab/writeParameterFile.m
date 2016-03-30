@@ -17,10 +17,10 @@ cameraRadius = scale*cameraRadius;
 
 %% Camera Parameters
 focalLength = 0.5;
-xResolution = 1920; % pixel resolution in x-direction of camera frame
+xResolution = 1080; % pixel resolution in x-direction of camera frame
 yResolution = 1080; % pixel resolution in y-direction of camera frame
-px = 1; % principle point in the middle of sensor
-py = 1; % principle point in the middle of sensor
+px = 540; % principle point in the middle of sensor
+py = 540; % principle point in the middle of sensor
 skew = 0;
 mx = 320;
 my = 320;

@@ -46,7 +46,7 @@ classdef Camera < handle
        %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew)
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, xResolution, yResolution)
            % Properties
            obj.f = f;
            obj.x0 = x0;
@@ -54,6 +54,8 @@ classdef Camera < handle
            obj.kx = kx;
            obj.ky = ky;
            obj.skew = skew;
+           obj.xResolution = xResolution;
+           obj.yResolution = yResolution;
            
            % Camera translation vector w.r.t. camera frame t = R_CI * C_I
            t = [0; 0; -radius];
@@ -132,6 +134,11 @@ classdef Camera < handle
            
            % Plot projected 2D points
            this.pointCloud2D.plotProjectedPoints(figureHandle);
+%            xlim([-this.x0, this.xResolution - this.x0])
+%            ylim([-this.y0, this.yResolution - this.y0])
+           title('3D to 2D projection')
+           xlabel('camera x-axis')
+           ylabel('camera y-axis')
            
            % Plot noisy 2D points
            hold on
@@ -145,8 +152,8 @@ classdef Camera < handle
        %> @param this Pointer to object
        function calculateCalibrationMatrix(this)
            % Fill in the calibration matrix
-           this.K = [this.f * this.kx, this.skew, this.x0 * this.kx;
-               0, this.f * this.ky, this.y0 * this.ky;
+           this.K = [this.f * this.kx, this.skew, this.x0;
+               0, this.f * this.ky, this.y0;
                0, 0, 1];
        end % calculateCalibrationMatrix() end
        
