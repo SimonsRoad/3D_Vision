@@ -67,12 +67,12 @@ classdef PointIn3D < handle
         %> @brief Add noise to this point, given the camera pose
         %>
         %> @param this Pointer to this PointIn3D object
-        %> @param T_WC Homogeneous transformation (in R^(4x4)) of the camera with respect to the world
+        %> @param T_WC Homogeneous transformation (in R^(3x4)) of the camera with respect to the world
 
         function addNoise(this,T_WC)
             
             % Transform true coordinates to camera frame
-            this.homogeneousTrueCoordinatesInCameraFrame = T_WC\this.homogeneousTrueCoordinatesInWorldFrame;
+            this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]\this.homogeneousTrueCoordinatesInWorldFrame;
             
             % Initialize noisy coordinates in camera frame
             this.homogeneousNoisyCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame;
@@ -86,7 +86,7 @@ classdef PointIn3D < handle
             this.homogeneousNoisyCoordinatesInCameraFrame(3) = this.homogeneousNoisyCoordinatesInCameraFrame(3)+noiseInCameraZ;
             
             % Set noisy coordinates in world frame
-            this.homogeneousNoisyCoordinatesInWorldFrame = T_WC*this.homogeneousNoisyCoordinatesInCameraFrame;
+            this.homogeneousNoisyCoordinatesInWorldFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousNoisyCoordinatesInCameraFrame;
             this.noisyCoordinatesInWorldFrame = this.homogeneousNoisyCoordinatesInWorldFrame(1:3);
            
         end

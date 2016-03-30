@@ -22,8 +22,8 @@ yResolution = 1080; % pixel resolution in y-direction of camera frame
 px = 1; % principle point in the middle of sensor
 py = 1; % principle point in the middle of sensor
 skew = 0;
-mx = 1920;
-my = 1080;
+mx = 320;
+my = 320;
 
 %% PointIn3D
 % Noise Models

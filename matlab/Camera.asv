@@ -78,8 +78,7 @@ classdef Camera < handle
            obj.truePose(1:3,4) = t;
            
            % Declare estimated Pose
-           obj.estimatedPose(1:3,1:3) = eye(3);
-           obj.estimatedPose(1:3,4) = zeros(1,3);
+           obj.estimatedPose = [eye(3), zeros(1,3)];
            
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();

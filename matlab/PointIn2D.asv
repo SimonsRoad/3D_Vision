@@ -37,11 +37,8 @@ classdef PointIn2D < handle
             % project noisy 3D point with x = K*[R|t]*X
             obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
             
-            % consider the scale factor
-            obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
-            
             % euclidean coordinates
-            obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
+            obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:3);
         end % Constructor end
         
         
