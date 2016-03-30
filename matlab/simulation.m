@@ -14,21 +14,35 @@ load(parameterFile);
 pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
     anisotropicGaussianMean,anisotropicGaussianVariance);
 
+% Initialize camera with random azimutal and polar angle
+azimutalAngle = 2*pi*rand();
+polarAngle = polarAngleMax*rand();
+Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, px, py, mx, my, skew);
+
+% Copy pointcloud3D to pointCloud3D of Cam
+Cam.pointCloud3D = pointcloud3D;
+
 % Plot the point cloud of the true points
-pointcloud3D.plotTruePointcloud()
+figure(1)
+Cam.pointCloud3D.plotTruePointcloud()
 axis vis3d
-
-% Initialize camera
-T_WC = [[1 0 0; 0 sqrt(3)/2 1/2; 0 -1/2 sqrt(3)/2] [0,1,1]'; zeros(1,3) 1];
-
-% add noise to 3d points
-pointcloud3D.addNoiseToAllPoints(T_WC)
-
 hold on
 
-pointcloud3D.plotNoisyPointcloud(plotConfidenceInterval)
+% Plot camera true pose and estimated pose of the camera
+Cam.visualizeCamera(1)
 
-% project 3d to 2d points
+% Add noise to 3d points
+[trueP, ~] = Cam.getPose();
+Cam.pointCloud3D.addNoiseToAllPoints(trueP)
+
+% Plot the point cloud of the noisy points
+Cam.pointCloud3D.plotNoisyPointcloud('false')
+
+% Project 3d to 2d points
+Cam.projectFrom3DTo2D();
+
+% Plot 2D points
+Cam.plot2DPoints(2);
 
 % add pixel noise to 2d projection
 

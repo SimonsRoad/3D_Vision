@@ -1,65 +1,102 @@
+% =========================================================================
+%> @brief Class PointIn2D stores projected coordinates of a corresponding PointIn3D and adds pixel noise to itself
+%>
+%>
+%>
+% =========================================================================
 classdef PointIn2D < handle
-    
-    % Properties
-    
     properties
+        % Coordinates in camera frame
+        projectedCoordinates                %> @param projectedCoordinates Coordinates of the 3D to 2D projection
+        homogeneousProjectedCoordinates     %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
+        noisyCoordinates                    %> @param noisyCoordinates Coordinates with pixel noise
+        homogeneousNoisyCoordinates         %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
         
-        % Coordinates
-        projectedCoordinates2D;
-        noisyCoordinates2D;
-        id;
-        noiseModel;
-        
-        % Flags
-        
-    end
-    
-    % Methods
+        % Noise in pixel space
+        mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
+        variance                    %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
+    end % properties end
     
     methods
+        %> @brief Constructor calculates directly coordinates of a 2D point from a noisy 3D correspondence
+        %>
+        %> Formula: x = K*[R|t]*X
+        %> x := homogeneous coordinates of a 2D point
+        %> X := homogeneous coordinates of a 3D point
+        %> K := camera calibration matrix
+        %> R := rotation matrix from world into camera frame
+        %> t := translation of camera in camera frame
+        %> Note: [R|t] is a 3x4 matrix, that is cameratruePose(1:3,:)
+        %>
+        %> @param noisyPointIn3D A noisy point in 3D
+        %> @param calibrationMatrix Camera calibration matrix
+        %> @param cameraTruePose Ground truth of camera
+        %>
+        %> @retval obj An object of class PointIn2D
+        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, cameraTruePose)
+            % project noisy 3D point with x = K*[R|t]*X
+            obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
+            
+            % consider the scale factor
+            obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
+            
+            % euclidean coordinates
+            obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
+        end % Constructor end
         
-        % constructor: input a noisy 3D point and a fully calibrated Camera, constructs directly the
-        % 2D correspondence
-        function obj = PointIn2D(noisyPoint3D, Camera)
-            obj.projectedCoordinates2D = calculateProjectedCoordinates(noisyPoint3D, Camera);
-            % obj.noisyCoordinates2D = addNoiseToPoint2D();
-            % obj.id =
-            % obj.noiseModel =
-        end
         
-        % input a 2D point, output Coordinates of this 2D point
-        function noisyPoint2D = getNoisyCoordinates()
-            noisyPoint2D = this.noisyCoordinates2D();
-        end
+        %> @brief Returns coordinates of this object of PointIn2D
+        %>
+        %> @param this Pointer to object
+        %>
+        %> @retval projCoord Projected coordinates of 2D point
+        %> @retval homProjCoord Homogeneous coordinates of 2D point
+        %> @retval noisyCoord Noisy coordinates of 2D point
+        %> @retval homNoisyCoord Homogeneous coordinates of noisy 2D point
+        function [projCoord, homProjCoord, noisyCoord, homNoisyCoord] = getCoordinates(this)
+            projCoord = this.projectedCoordinates;
+            homProjCoord = this.homogeneousProjectedCoordinates;
+            noisyCoord = this.noisyCoordinates;
+            homNoisyCoord = this.homogeneousNoisyCoordinates;
+        end % getCoordinates() end
         
-        % calculate the corresponding 2D coordinates of a noisy 3D point
-        % p_A = K * R_AI * (P_I - C_I)
-        % A : Camera frame
-        % I : Inertial / World frame
-        % p_A : pixel coordinates in Camera Frame
-        % K : calibration matrix
-        % R_AI : Rotation form Inertial to Camera Frame
-        % P_I : 3D noisy point in Inertial Frame
-        % C_I : Camera position in Inertial Frame
-        % t_A : R_AI * C_I is already in the Transformation matrix
-        function projectedPoint2D = calculateProjectedCoordinates(noisyPoint3D_I, Camera)
-            K = Camera.calculateCalibrationMatrix();
-            T_IA = Camera.getTransformationMatrix();
-            R_IA = T_IA(1:3,1:3);
-            R_AI = R_IA';
-            t_A = T_IA(:,1:3); 
-            this.projectedCoordinates2D = K * (R_AI * noisyPoint3D_I - t_A);
-            projectedPoint2D = this.projectedCoordinates2D;
-        end
         
+        %> @brief Set the means for the noise of this point
+        %>
+        %> @param this Pointer to object
+        %> @param mean Vector of means, in camera frame
+        function setMean(this, mean)
+            this.mean = mean;
+        end % setMean() end
+        
+
+        %> @brief Set the variances for the noise of this point
+        %>
+        %> @param this Pointer to object
+        %> @param mean Vector of variances
+        function setVariance(this, variance)
+            this.variance = variance;
+        end % setVariance() end
+        
+        %> @brief Add pixel noise to this point
+        %>
+        %> @param this Pointer to object
+        function addPixelNoise(this)
+            %----TODO----
+            %
+            %----TODO----
+        end % addPixelNoise() end
+        
+        %> @brief
+        %>
+        %> @param
+        %> @param
+        %> @param
         function point2Ddistorted = addDistortion(Point2D, k, Camera)
            K = Camera.calculateCalibrationMatrix();
            centerOfDistortion = [K(1,3); K(2,3)];
            radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2);
            point2Ddistorted = (1 + k(1) * radius^2 + k(2) * radius^4 + k(3) * radius^6) * Point2D;
-        end
-        % loadParameters(paramterFileDirectory)
-        
-    end
-    
-end
+        end % addDistortion() end
+    end % methods end
+end % classdef end
