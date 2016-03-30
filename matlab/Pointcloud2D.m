@@ -18,13 +18,13 @@ classdef Pointcloud2D < handle
         %> @param pointCloud3D 3D pointcloud
         %>
         %> @retval obj array with points in 2D
-        function obj = Pointcloud2D(pointCloud3D, calibrationMatrix, cameraTruePose)
+        function obj = Pointcloud2D(pointCloud3D, calibrationMatrix, focalLength, cameraTruePose)
             % Get number of points in pointCloud3D
             obj.numberOfPoints = pointCloud3D.getNumberOfPoints();
             
             % Construct all the 2D correspondences with a loop
             for i = 1:obj.numberOfPoints
-                obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, cameraTruePose);
+                obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, focalLength, cameraTruePose);
             end % for loop end
         end % Constructor end
         

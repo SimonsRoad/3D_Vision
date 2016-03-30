@@ -72,7 +72,7 @@ classdef PointIn3D < handle
         function addNoise(this,T_WC)
             
             % Transform true coordinates to camera frame
-            this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]\this.homogeneousTrueCoordinatesInWorldFrame;
+            this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousTrueCoordinatesInWorldFrame;
             
             % Initialize noisy coordinates in camera frame
             this.homogeneousNoisyCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame;
@@ -84,9 +84,10 @@ classdef PointIn3D < handle
             this.homogeneousNoisyCoordinatesInCameraFrame(2) = this.homogeneousNoisyCoordinatesInCameraFrame(2)+noiseInCameraY;
             noiseInCameraZ = normrnd(this.anisotropicGaussianMean(3),this.anisotropicGaussianVariance(3));
             this.homogeneousNoisyCoordinatesInCameraFrame(3) = this.homogeneousNoisyCoordinatesInCameraFrame(3)+noiseInCameraZ;
+            this.noisyCoordinatesInCameraFrame = this.homogeneousNoisyCoordinatesInCameraFrame(1:3);
             
             % Set noisy coordinates in world frame
-            this.homogeneousNoisyCoordinatesInWorldFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousNoisyCoordinatesInCameraFrame;
+            this.homogeneousNoisyCoordinatesInWorldFrame = [T_WC; 0, 0, 0, 1]\this.homogeneousNoisyCoordinatesInCameraFrame;
             this.noisyCoordinatesInWorldFrame = this.homogeneousNoisyCoordinatesInWorldFrame(1:3);
            
         end

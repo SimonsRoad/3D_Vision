@@ -4,11 +4,11 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 500;
+numberOfPoints = 50;
 
 shape = 'planar'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
-cameraRadius = 2;
+cameraRadius = 1.2;
 polarAngleMax = pi/3;
 
 % Scale
@@ -24,6 +24,9 @@ py = 1; % principle point in the middle of sensor
 skew = 0;
 mx = 320;
 my = 320;
+
+%% PnP Parameters
+pnpAlgorithm = 'EPNP'; % Options: 'EPNP'
 
 %% PointIn3D
 % Noise Models

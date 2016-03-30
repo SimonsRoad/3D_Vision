@@ -30,6 +30,9 @@ classdef Camera < handle
        % Point clouds
        pointCloud3D@Pointcloud3D    %> @param pointCloud3D Member of type Pointcloud3D
        pointCloud2D@Pointcloud2D    %> @param pointCloud2D Member of type Pointcloud2D
+       
+       % PnP Algorithm
+       pnpAlgorithm@PnPAlgorithm;   %> @param pnpAlgorithm Perspective N Point algorithm
    end % Properties end
    
    methods
@@ -83,6 +86,7 @@ classdef Camera < handle
            
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
+           
        end % Camera() end
        
        
@@ -109,7 +113,7 @@ classdef Camera < handle
            
            % Plot the estimated pose
            hold on
-           estimatedCam = plotCamera('Location',trueRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
+           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
        end % visualizeCamera() end
        
        
@@ -118,7 +122,7 @@ classdef Camera < handle
        %> @param this Pointer to Camera object
        function projectFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.truePose);
+           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.f, this.truePose);
        end % projectFrom3DTo2D() end
        
        
@@ -150,6 +154,12 @@ classdef Camera < handle
                0, 0, 1];
        end % calculateCalibrationMatrix() end
        
+       %> @brief Estimate the camera pose with a pnp algorithm
+       function estimatePose(this)
+           [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
+           this.estimatedPose(1:3,1:3) = R;
+           this.estimatedPose(1:3,4) = -t;
+       end
        
        %> @brief Returns camera calibration matrix
        %> 
@@ -160,6 +170,12 @@ classdef Camera < handle
            K = this.K;
        end % getCalibrationMatrix() end
        
+       %> @brief Sets the PnP Algorithm
+       %>
+       %> @param algorithm Name of the PnP Algorithm
+       function setPnPAlgorithm(this,algorithm_)
+           this.pnpAlgorithm = PnPAlgorithm(this.pointCloud3D, this.pointCloud2D, algorithm_);
+       end
        
        %> @brief getPose() returns true and estimated pose of a Camera object
        %>
