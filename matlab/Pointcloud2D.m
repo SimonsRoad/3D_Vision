@@ -85,7 +85,6 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            figure(figureHandle)
             plot(X,Y,'.','Color','red')
             
         end % plotNoisyPoints() end
@@ -96,7 +95,7 @@ classdef Pointcloud2D < handle
         %>
         %> @param this Pointer to object
         %> @param figureHandle Handle to figure
-        function plotDistortedImagePoints(this, figureHandle)
+        function plotDistortedImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
             Y = zeros(1,this.numberOfPoints);
@@ -108,7 +107,6 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            figure(figureHandle)
             plot(X,Y,'.','Color','red')
             xlim([-100 100])
             ylim([-100 100])

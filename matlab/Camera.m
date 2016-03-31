@@ -53,7 +53,7 @@ classdef Camera < handle
        %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, kappa, p)
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, kappa, p, xResolution, yResolution)
            % Properties
            obj.f = f;
            obj.x0 = x0;

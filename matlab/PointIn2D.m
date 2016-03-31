@@ -14,14 +14,16 @@ classdef PointIn2D < handle
         homogeneousNoisyCoordinates                             %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
         
         noisyCoordinatesInCameraFrame                           %> @param noisyCoordinatesInCameraFrame u-v coordinates
-        homogeneousNoisyCoordinatesInCameraFrame                %> @param noisyCoordinatesInCameraFrame Homogeneous u-v coordinates
-        
+        homogeneousNoisyCoordinatesInCameraFrame                %> @param noisyCoordinatesInCameraFrame Homogeneous u-v coordinates      
         
         distortedNoisyCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
         homogeneousDistortedNoisyCoordinatesInCameraFrame       %> @param distortedNoisyCoordinatesInCameraFrame Homogeneous distorted u-v coordinates
         
         homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
         distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
+        
+        homogeneousNoisyPixelCoordinates                        %> @param homogeneousNoisyPixelCoordinates Homogeneous pixel coordinates of distorted projected points
+        noisyPixelCoordinates                                   %> @param NoisyPixelCoordinates Pixel coordinates of distorted projected points
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -127,8 +129,8 @@ classdef PointIn2D < handle
             end %if end
             
             % add noise to pixel coordinates
-            this.homogeneousNoisyPixelCoordinates(1) = this.homogeneousNoisyPixelCoordinates(1) + noiseInPixelX;
-            this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousNoisyPixelCoordinates(2) + noiseInPixelY;
+            this.homogeneousNoisyPixelCoordinates(1) = this.homogeneousDistortedPixelCoordinates(1) + noiseInPixelX;
+            this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousDistortedPixelCoordinates(2) + noiseInPixelY;
             
             % extract euclidean noisy pixel coordinates
             this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
