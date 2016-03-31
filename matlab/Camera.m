@@ -21,8 +21,12 @@ classdef Camera < handle
        x0                           %> @param x0 Pixel x-coordinate of principle point
        y0                           %> @param y0 Pixel y-coordinate of principle point
        skew                         %> @param skew Skew paramater of camera sensor
+       imagetoPixelCoordinatesTrafo %> @param ImagetoPixelCoordinatesTrafo Matrix from u,y to x,y coordinates
+       focalLenghtMatrix            %> @param focallengthMatrix Matrix [f 0 0; 0 f 0; 0 0 1]
        K                            %> @param K Calibration matrix
        distortionModel              %> @param distortionModel String Distortion model
+       kappa                        %> @param kappa Radial distortion parameters
+       p                            %> @param p tangential distortion parameters
        
        % Pose estimation algorithm
        perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm String of algorithm used for pose estimation
@@ -49,7 +53,7 @@ classdef Camera < handle
        %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew)
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, kappa, p)
            % Properties
            obj.f = f;
            obj.x0 = x0;
@@ -84,9 +88,18 @@ classdef Camera < handle
            obj.estimatedPose(1:3,1:3) = eye(3);
            obj.estimatedPose(1:3,4) = zeros(1,3);
            
+           % Calculate Transformation Matrix from image to pixel coordinates
+           obj.calculateUVtoPixelMatrix();
+           % Calculate focallength Matrix [f 0 0; 0 f 0; 0 0 1]
+           obj.calculateFocallengthMatrix
+           
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
            
+           % Set distortion parameters
+           obj.kappa = kappa;   % radial distortion
+           obj.p = p;           % tangential distortion
+
        end % Camera() end
        
        
@@ -122,7 +135,9 @@ classdef Camera < handle
        %> @param this Pointer to Camera object
        function projectFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.f, this.truePose);
+
+           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.imagetoPixelCoordinatesTrafo, this.focalLenghtMatrix, this.truePose, this.kappa, this.p);
+
        end % projectFrom3DTo2D() end
        
        
@@ -143,15 +158,55 @@ classdef Camera < handle
            hold off
        end % plot2DPoints() end
        
+       %> @brief Plot distorted 2D points in image coordinates (u,v)
+       %>
+       %> @param this Pointer to object
+       %> @param figureHandle Handle to figure number
+       function plotDistortedImage2DPoints(this, figureHandle)
+           % Open figure
+           figure(figureHandle)
+           
+           % Plot distortoted 2D points
+           this.pointCloud2D.plotDistortedImagePoints(figureHandle);
+           
+       end % plot2DPoints() end
+       
+       %> @brief Plot distorted 2D points in pixel coordinates
+       %>
+       %> @param this Pointer to object
+       %> @param figureHandle Handle to figure number
+       function plotDistortedPixel2DPoints(this, figureHandle)
+           % Open figure
+           figure(figureHandle)
+           
+           % Plot distortoted 2D points
+           this.pointCloud2D.plotDistortedPixelPoints(figureHandle);
+           
+       end % plot2DPoints() end
+       
+       
+       %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
+       %> 
+       %> @param this Pointer to object
+       function calculateUVtoPixelMatrix(this)
+           this.imagetoPixelCoordinatesTrafo = [this.kx, this.skew, this.x0;
+               0, this.ky, this.y0;
+               0, 0, 1];
+       end
+       
+       %> @brief Calculates the focallength matrix [f 0 0; 0 f 0; 0 0 1]
+       %> 
+       %> @param this Pointer to object
+       function calculateFocallengthMatrix(this)
+           this.focalLenghtMatrix = [this.f, 0, 0; 0, this.f, 0; 0, 0, 1];
+       end
        
        %> @brief Calculates the camera calibration matrix
        %>
        %> @param this Pointer to object
        function calculateCalibrationMatrix(this)
            % Fill in the calibration matrix
-           this.K = [this.f * this.kx, this.skew, this.x0 * this.kx;
-               0, this.f * this.ky, this.y0 * this.ky;
-               0, 0, 1];
+           this.K = this.imagetoPixelCoordinatesTrafo * this.focalLenghtMatrix;
        end % calculateCalibrationMatrix() end
        
        %> @brief Estimate the camera pose with a pnp algorithm
@@ -207,5 +262,7 @@ classdef Camera < handle
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
        end % getPose() end
+       
+       
    end % methods end
 end % classdef end

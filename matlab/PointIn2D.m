@@ -6,13 +6,21 @@
 % =========================================================================
 classdef PointIn2D < handle
     properties
-        % Coordinates (in camera frame?)
-        projectedCoordinates                        %> @param projectedCoordinates Coordinates of the 3D to 2D projection
-        homogeneousProjectedCoordinates             %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
-        noisyCoordinates                            %> @param noisyCoordinates Coordinates with pixel noise in pixel space
-        homogeneousNoisyCoordinates                 %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
-        noisyCoordinatesInCameraFrame               %> @param noisyCoordinatesInCameraFrame Coordinates with pixel noise in camera frame
-        homogeneousNoisyCoordinatesInCameraFrame    %> @param homogeneousNoisyCoordinatesInCameraFrame Homogeneous coordinates of noisy points in camera frame
+
+        % Coordinates in camera frame
+        projectedCoordinates                                    %> @param projectedCoordinates Coordinates of the 3D to 2D projection
+        homogeneousProjectedCoordinates                         %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
+        noisyCoordinates                                        %> @param noisyCoordinates Coordinates with pixel noise
+        homogeneousNoisyCoordinates                             %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
+        
+        noisyCoordinatesInCameraFrame                           %> @param noisyCoordinatesInCameraFrame u-v coordinates
+        homogeneousNoisyCoordinatesInCameraFrame                %> @param noisyCoordinatesInCameraFrame Homogeneous u-v coordinates
+        
+        
+        distortedNoisyCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
+        homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
+        distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
+
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -35,28 +43,32 @@ classdef PointIn2D < handle
         %> @param cameraTruePose Ground truth of camera
         %>
         %> @retval obj An object of class PointIn2D
-        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, focalLength, cameraTruePose)
-            % First, do the coordinates in pixel space
+
+        % First, do the coordinates in pixel space
+
+        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, imageToPixelMatrix, focalLengthMatrix, cameraTruePose, kappa, p)
             % project noisy 3D point with x = K*[R|t]*X
             obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            
             % consider the scale factor
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
-            
-            % convert ot euclidean coordinates
-            obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
             
             % Now for the coordinates in camera frame
             % Transform noisy 3D point with x = K_tilde*[R|t]*X, K_tilde is
             % the calibration matrix but without the conversion to pixel
             % space
-            obj.homogeneousNoisyCoordinatesInCameraFrame = [focalLength 0 0; 0 focalLength 0; 0 0 1]*cameraTruePose*noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            
-            % Consider the scale factor
+            % project noisy 3D point in u,v coordinates
+            obj.homogeneousNoisyCoordinatesInCameraFrame = focalLengthMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
+            % normalization
             obj.homogeneousNoisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame / obj.homogeneousNoisyCoordinatesInCameraFrame(3);
             
-            % Convert to euclidian coordinates
+            % euclidean coordinates
+            obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
             obj.noisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame(1:2);
+            
+            % add distortion (radial and tangetial) to noisyCoordinatesInCameraFrame
+            obj.addDistortion(kappa, p); % calculates obj.distortedNoisyCoordinatesInCameraFrame
+            obj.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
+            obj.distortedPixelCoordinates = obj.homogeneousDistortedPixelCoordinates(1:2);
             
         end % Constructor end
         
@@ -103,16 +115,22 @@ classdef PointIn2D < handle
             %----TODO----
         end % addPixelNoise() end
         
-        %> @brief
+        %> @brief Add distortion to u,v coordinates
         %>
-        %> @param
-        %> @param
-        %> @param
-        function point2Ddistorted = addDistortion(Point2D, k, Camera)
-           K = Camera.calculateCalibrationMatrix();
-           centerOfDistortion = [K(1,3); K(2,3)];
-           radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2);
-           point2Ddistorted = (1 + k(1) * radius^2 + k(2) * radius^4 + k(3) * radius^6) * Point2D;
+        %> @param this Pointer to object
+        %> @param kappa Radial distortion parameters 3-dimensional vector
+        %> @param p Tangential distortion parameters 2-dimensional vector
+        function addDistortion(this, kappa, p)
+      
+           uvCoordinates = this.noisyCoordinatesInCameraFrame;
+           %centerOfDistortion = [0;0];
+           radiusSquared = uvCoordinates(1)^2 + uvCoordinates(2)^2;
+           this.distortedNoisyCoordinatesInCameraFrame(1) = (1 + kappa(1) * radiusSquared + kappa(2) * radiusSquared^2 + kappa(3) * radiusSquared^3) * uvCoordinates(1) ...
+               + 2 * p(1) * uvCoordinates(1) * uvCoordinates(2) + p(2) * (radiusSquared + 2 * uvCoordinates(1)^2);
+           this.distortedNoisyCoordinatesInCameraFrame(2) = (1 + kappa(1) * radiusSquared + kappa(2) * radiusSquared^2 + kappa(3) * radiusSquared^3) * uvCoordinates(2) ...
+               + 2 * p(2) * uvCoordinates(1) * uvCoordinates(2) + p(1) * (radiusSquared + 2 * uvCoordinates(2)^2);
+           
         end % addDistortion() end
+        
     end % methods end
 end % classdef end

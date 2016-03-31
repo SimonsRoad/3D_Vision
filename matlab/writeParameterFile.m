@@ -35,6 +35,10 @@ pointIn3DNoiseModel = 'anisotropicGaussian';
 anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
 anisotropicGaussianVariance = scale*[0.01; 0.01; 0.01];
 
+%% Distortion parameters
+kappa = [0;0;0];                % radial distortion
+p = [0;0];                      % tangential distortion
+
 %% Save Parameter File
 
 save('parameters.mat')
