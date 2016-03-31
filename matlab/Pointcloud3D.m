@@ -53,12 +53,12 @@ classdef Pointcloud3D < handle
                 end
             elseif strcmp(obj.shape,'cubic')
                 for i = 1:obj.numberOfPoints
-                    P = obj.scale*rand(3,1) - obj.scale*0.5;
+                    P = obj.scale*rand(3,1)-obj.scale*0.5;
                     obj.pointsIn3D(i) = PointIn3D(P(1),P(2),P(3));
                 end
             elseif strcmp(obj.shape,'planar')
                 for i = 1:obj.numberOfPoints
-                    P = obj.scale*rand(2,1) - obj.scale*0.5;
+                    P = obj.scale*rand(2,1)-obj.scale*0.5;
                     obj.pointsIn3D(i) = PointIn3D(P(1),P(2),0);
                 end
             else

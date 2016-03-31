@@ -8,7 +8,7 @@ load(parameterFile);
 %% generate 3D points
 
 % Initialize random number generator
-rng(0,'twister')
+% rng(0,'twister')
 
 % Generate 3D Pointcloud
 pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
