@@ -123,26 +123,39 @@ classdef Camera < handle
            this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.truePose);
        end % projectFrom3DTo2D() end
        
+       %> @brief
+       %>
+       %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
+       %> @param this Pointer to Camera object
+       %> @param variance Variance of gaussian distribution
+       %> @param pixelWindowInterval Half interval in pixel of window
+       function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+           if strcmp(noiseType,'noNoise')
+               return
+           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'binomial'))
+               this.pointCloud2D.addPixelNoise(noiseType, variance, pixelWindowInterval);
+           else
+               error('addPixelNoise() must be called with the options: noNoise, uniformly, gaussian');
+           end
+       end % addPixelNoise() end
+       
        
        %> @brief Plot projected and noisy 2D points
        %>
        %> @param this Pointer to object
        %> @param figureHandle Handle to figure number
-       function plot2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot projected 2D points
-           this.pointCloud2D.plotProjectedPoints(figureHandle);
+       function plot2DPoints(this)
+           % Plot 2D pixel points
+           this.pointCloud2D.plotPixelPoints();
 %            xlim([-this.x0, this.xResolution - this.x0])
 %            ylim([-this.y0, this.yResolution - this.y0])
            title('3D to 2D projection')
            xlabel('camera x-axis')
            ylabel('camera y-axis')
-           
-           % Plot noisy 2D points
            hold on
-%            this.pointCloud2D.plotNoisyPoints(figureHandle);
+           
+           % Plot 2D noisy pixel points
+           this.pointCloud2D.plotNoisyPixelPoints();
            hold off
        end % plot2DPoints() end
        

@@ -11,6 +11,8 @@ classdef PointIn2D < handle
         homogeneousProjectedCoordinates     %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
         noisyCoordinates                    %> @param noisyCoordinates Coordinates with pixel noise
         homogeneousNoisyCoordinates         %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
+        noisyPixelCoordinates               %> @param noisyPixelCoordinates Pixel coordinates with pixel noise
+        homogeneousNoisyPixelCoordinates    %> @param homogeneousNoisyPixelCoordinates Homogeneous pixel coordinates with pixel noise
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -42,9 +44,11 @@ classdef PointIn2D < handle
             
             % pixel coordinates must be integer, therefore round coordinates
             obj.homogeneousProjectedCoordinates = floor(obj.homogeneousProjectedCoordinates);
+            obj.homogeneousNoisyPixelCoordinates = obj.homogeneousProjectedCoordinates;
             
             % euclidean coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
+            obj.noisyPixelCoordinates = obj.projectedCoordinates;
         end % Constructor end
         
         
@@ -84,10 +88,28 @@ classdef PointIn2D < handle
         %> @brief Add pixel noise to this point
         %>
         %> @param this Pointer to object
-        function addPixelNoise(this)
-            %----TODO----
-            %
-            %----TODO----
+        %> @param noiseType String type of noise
+        %> @param variance Variance of gaussian distribution
+        %> @param pixelWindowInterval Half interval in pixel of window
+        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+            % discrete uniformly distributed noise
+            if strcmp(noiseType,'uniformly')
+                % genereate noise in x- and y-direction
+                noiseInPixelX = unidrnd(pixelWindowInterval) - pixelWindowInterval;
+                noiseInPixelY = unidrnd(pixelWindowInterval) - pixelWindowInterval;
+            % discrete binomial distributed noise
+            elseif strcmp(noiseType,'binomial')
+                % generate noise in x- and y-direction
+                noiseInPixelX = this.generateDRV(variance, pixelWindowInterval);
+                noiseInPixelY = this.generateDRV(variance, pixelWindowInterval);
+            end %if end
+            
+            % add noise to pixel coordinates
+            this.homogeneousNoisyPixelCoordinates(1) = this.homogeneousNoisyPixelCoordinates(1) + noiseInPixelX;
+            this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousNoisyPixelCoordinates(2) + noiseInPixelY;
+            
+            % extract euclidean noisy pixel coordinates
+            this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
         %> @brief
@@ -101,5 +123,32 @@ classdef PointIn2D < handle
            radius = sqrt((Point2D(1,1) - centerOfDistortion(1,1))^2 + (Point2D(2,1) - centerOfDistortion(2,1))^2);
            point2Ddistorted = (1 + k(1) * radius^2 + k(2) * radius^4 + k(3) * radius^6) * Point2D;
         end % addDistortion() end
+        
+        
+        %> @brief Helper function
+        %>
+        %> @param this Pointer to PointIn2D object
+        %> @param variance Variance of gaussian distribution
+        %> @param pixelWindowInterval Half interval in pixel of window
+        function discreteRandomVariable = generateDRV(this, variance, pixelWindowInterval)
+            % Generate random uniformly distributed variable
+            u = rand();
+            
+            % Desired probability density function
+            pdf = makedist('Normal',0,variance);
+            
+            % Cumulative distribution function
+            F = cdf(pdf,-pixelWindowInterval:pixelWindowInterval);
+            
+            % Find discrete random variable
+            DRV = find(F <= u);
+            
+            % find last index at which F <= u and u < F
+            if (isempty(DRV))
+                discreteRandomVariable = - pixelWindowInterval;
+            else
+                discreteRandomVariable = DRV(end) - pixelWindowInterval;
+            end
+        end % generateDRV() end
     end % methods end
 end % classdef end

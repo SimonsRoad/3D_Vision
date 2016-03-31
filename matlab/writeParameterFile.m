@@ -17,13 +17,13 @@ cameraRadius = scale*cameraRadius;
 
 %% Camera Parameters
 focalLength = 0.5;
-xResolution = 1920; % pixel resolution in x-direction of camera frame
-yResolution = 1080; % pixel resolution in y-direction of camera frame
+xResolution = 640; % pixel resolution in x-direction of camera frame
+yResolution = 480; % pixel resolution in y-direction of camera frame
 x0 = 0; % principle point in the middle of sensor
 y0 = 0; % principle point in the middle of sensor
 skew = 0;
-kx = 320;
-ky = 320;
+kx = 1200;
+ky = 1200;
 
 %% PointIn3D
 % Noise Models

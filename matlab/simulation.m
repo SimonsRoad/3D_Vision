@@ -41,9 +41,11 @@ Cam.pointCloud3D.plotNoisyPointcloud('false')
 % Project 3d to 2d points
 Cam.projectFrom3DTo2D();
 
-% Plot 2D points
-Cam.plot2DPoints(2);
-
 % add pixel noise to 2d projection
+Cam.addPixelNoise('binomial', 1, 5);
+
+% Plot 2D points
+figure(2)
+Cam.plot2DPoints();
 
 % estimate camera pose with PnP algorithm
