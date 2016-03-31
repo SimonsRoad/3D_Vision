@@ -17,13 +17,13 @@ cameraRadius = scale*cameraRadius;
 
 %% Camera Parameters
 focalLength = 0.5;
-xResolution = 1920; % pixel resolution in x-direction of camera frame
-yResolution = 1080; % pixel resolution in y-direction of camera frame
-px = 1; % principle point in the middle of sensor
-py = 1; % principle point in the middle of sensor
+xResolution = 640; % pixel resolution in x-direction of camera frame
+yResolution = 480; % pixel resolution in y-direction of camera frame
+x0 = 0; % principle point in the middle of sensor
+y0 = 0; % principle point in the middle of sensor
 skew = 0;
-mx = 320;
-my = 320;
+kx = 1200;
+ky = 1200;
 
 %% PnP Parameters
 pnpAlgorithm = 'LHM'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'

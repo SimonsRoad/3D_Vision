@@ -18,8 +18,7 @@ pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
 azimutalAngle = 2*pi*rand();
 polarAngle = polarAngleMax*rand();
 
-camera = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, px, py, mx, my, skew, kappa, p);
-
+Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, x0, y0, kx, ky, skew, xResolution, yResolution);
 
 % Copy pointcloud3D to pointCloud3D of camera
 camera.pointCloud3D = pointcloud3D;
@@ -46,6 +45,11 @@ camera.plot2DPoints(2);
 camera.plotDistortedPixel2DPoints(3);
 
 % add pixel noise to 2d projection
+Cam.addPixelNoise('binomial', 1, 5);
+
+% Plot 2D points
+figure(2)
+Cam.plot2DPoints();
 
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);

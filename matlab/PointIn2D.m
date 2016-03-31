@@ -22,7 +22,6 @@ classdef PointIn2D < handle
         
         homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
         distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
-
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -72,7 +71,6 @@ classdef PointIn2D < handle
             obj.homogeneousDistortedNoisyCoordinatesInCameraFrame = [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
             obj.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
             obj.distortedPixelCoordinates = obj.homogeneousDistortedPixelCoordinates(1:2);
-            
         end % Constructor end
         
         
@@ -112,10 +110,28 @@ classdef PointIn2D < handle
         %> @brief Add pixel noise to this point
         %>
         %> @param this Pointer to object
-        function addPixelNoise(this)
-            %----TODO----
-            %
-            %----TODO----
+        %> @param noiseType String type of noise
+        %> @param variance Variance of gaussian distribution
+        %> @param pixelWindowInterval Half interval in pixel of window
+        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+            % discrete uniformly distributed noise
+            if strcmp(noiseType,'uniformly')
+                % genereate noise in x- and y-direction
+                noiseInPixelX = unidrnd(pixelWindowInterval) - pixelWindowInterval;
+                noiseInPixelY = unidrnd(pixelWindowInterval) - pixelWindowInterval;
+            % discrete binomial distributed noise
+            elseif strcmp(noiseType,'binomial')
+                % generate noise in x- and y-direction
+                noiseInPixelX = this.generateDRV(variance, pixelWindowInterval);
+                noiseInPixelY = this.generateDRV(variance, pixelWindowInterval);
+            end %if end
+            
+            % add noise to pixel coordinates
+            this.homogeneousNoisyPixelCoordinates(1) = this.homogeneousNoisyPixelCoordinates(1) + noiseInPixelX;
+            this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousNoisyPixelCoordinates(2) + noiseInPixelY;
+            
+            % extract euclidean noisy pixel coordinates
+            this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
         %> @brief Add distortion to u,v coordinates
@@ -135,5 +151,31 @@ classdef PointIn2D < handle
            
         end % addDistortion() end
         
+
+        %> @brief Helper function
+        %>
+        %> @param this Pointer to PointIn2D object
+        %> @param variance Variance of gaussian distribution
+        %> @param pixelWindowInterval Half interval in pixel of window
+        function discreteRandomVariable = generateDRV(this, variance, pixelWindowInterval)
+            % Generate random uniformly distributed variable
+            u = rand();
+            
+            % Desired probability density function
+            pdf = makedist('Normal',0,variance);
+            
+            % Cumulative distribution function
+            F = cdf(pdf,-pixelWindowInterval:pixelWindowInterval);
+            
+            % Find discrete random variable
+            DRV = find(F <= u);
+            
+            % find last index at which F <= u and u < F
+            if (isempty(DRV))
+                discreteRandomVariable = - pixelWindowInterval;
+            else
+                discreteRandomVariable = DRV(end) - pixelWindowInterval;
+            end
+        end % generateDRV() end
     end % methods end
 end % classdef end

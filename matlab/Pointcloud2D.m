@@ -33,11 +33,25 @@ classdef Pointcloud2D < handle
         end % Constructor end
         
         
+        %> @brief
+        %>
+        %> @param this Pointer to Pointcloud2D object
+        %> @param noiseType String type of noise
+        %> @param variance Variance of gaussian distribution
+        %> @param pixelWindowInterval Half interval in pixel of window
+        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+            % for every 2D point
+            for i = 1:this.numberOfPoints
+                this.pointsIn2D(i).addPixelNoise(noiseType, variance, pixelWindowInterval);
+            end
+        end % addPixelNoise() end
+        
+        
         %> @brief Plots the projected 2D points
         %>
         %> @param this Pointer to object
         %> @param figureHandle Handle to figure
-        function plotProjectedPoints(this, figureHandle)
+        function plotPixelPoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
             Y = zeros(1,this.numberOfPoints);
@@ -49,7 +63,6 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            figure(figureHandle)
             plot(X,Y,'.','Color','red')
             xlim([-100 100])
             ylim([-100 100])
@@ -60,15 +73,15 @@ classdef Pointcloud2D < handle
         %>
         %> @param this Pointer to object
         %> @param figureHandle Handle to figure
-        function plotNoisyPoints(this, figureHandle)
+        function plotNoisyPixelPoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
             Y = zeros(1,this.numberOfPoints);
             
             % Loop over all points
             for i = 1:this.numberOfPoints
-                X(i) = this.pointsIn2D(i).noisyCoordinates(1);
-                Y(i) = this.pointsIn2D(i).noisyCoordinates(2);
+                X(i) = this.pointsIn2D(i).noisyPixelCoordinates(1);
+                Y(i) = this.pointsIn2D(i).noisyPixelCoordinates(2);
             end % for loop end
             
             % plot projected 2D points
@@ -123,6 +136,5 @@ classdef Pointcloud2D < handle
             xlim([-100 100])
             ylim([-100 100])
         end % plotProjectedPoints() end
-        
     end % methods end
 end % classdef end
