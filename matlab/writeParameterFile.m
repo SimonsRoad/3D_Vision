@@ -4,11 +4,11 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 500;
+numberOfPoints = 20;
 
 shape = 'planar'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
-cameraRadius = 2;
+cameraRadius = 1.5;
 polarAngleMax = pi/3;
 
 % Scale
@@ -25,12 +25,15 @@ skew = 0;
 mx = 320;
 my = 320;
 
+%% PnP Parameters
+pnpAlgorithm = 'LHM'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
+
 %% PointIn3D
 % Noise Models
 pointIn3DNoiseModel = 'anisotropicGaussian';
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
 anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
-anisotropicGaussianVariance = scale*[0.001; 0.001; 0.01];
+anisotropicGaussianVariance = scale*[0.01; 0.01; 0.01];
 
 %% Save Parameter File
 

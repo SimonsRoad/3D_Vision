@@ -6,11 +6,13 @@
 % =========================================================================
 classdef PointIn2D < handle
     properties
-        % Coordinates in camera frame
-        projectedCoordinates                %> @param projectedCoordinates Coordinates of the 3D to 2D projection
-        homogeneousProjectedCoordinates     %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
-        noisyCoordinates                    %> @param noisyCoordinates Coordinates with pixel noise
-        homogeneousNoisyCoordinates         %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
+        % Coordinates (in camera frame?)
+        projectedCoordinates                        %> @param projectedCoordinates Coordinates of the 3D to 2D projection
+        homogeneousProjectedCoordinates             %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
+        noisyCoordinates                            %> @param noisyCoordinates Coordinates with pixel noise in pixel space
+        homogeneousNoisyCoordinates                 %> @param homogeneousNoisyCoordinates Homogeneous coordinates with pixel noise
+        noisyCoordinatesInCameraFrame               %> @param noisyCoordinatesInCameraFrame Coordinates with pixel noise in camera frame
+        homogeneousNoisyCoordinatesInCameraFrame    %> @param homogeneousNoisyCoordinatesInCameraFrame Homogeneous coordinates of noisy points in camera frame
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -33,15 +35,29 @@ classdef PointIn2D < handle
         %> @param cameraTruePose Ground truth of camera
         %>
         %> @retval obj An object of class PointIn2D
-        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, cameraTruePose)
+        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, focalLength, cameraTruePose)
+            % First, do the coordinates in pixel space
             % project noisy 3D point with x = K*[R|t]*X
             obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
             
             % consider the scale factor
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             
-            % euclidean coordinates
+            % convert ot euclidean coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
+            
+            % Now for the coordinates in camera frame
+            % Transform noisy 3D point with x = K_tilde*[R|t]*X, K_tilde is
+            % the calibration matrix but without the conversion to pixel
+            % space
+            obj.homogeneousNoisyCoordinatesInCameraFrame = [focalLength 0 0; 0 focalLength 0; 0 0 1]*cameraTruePose*noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
+            
+            % Consider the scale factor
+            obj.homogeneousNoisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame / obj.homogeneousNoisyCoordinatesInCameraFrame(3);
+            
+            % Convert to euclidian coordinates
+            obj.noisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame(1:2);
+            
         end % Constructor end
         
         
