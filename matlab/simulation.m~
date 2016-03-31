@@ -17,7 +17,7 @@ pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
 % Initialize camera with random azimutal and polar angle
 azimutalAngle = 2*pi*rand();
 polarAngle = polarAngleMax*rand();
-Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, px, py, mx, my, skew, kappa, p);
+Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, px, py, mx, my, skew, kappa);
 
 % Copy pointcloud3D to pointCloud3D of Cam
 Cam.pointCloud3D = pointcloud3D;
@@ -43,8 +43,8 @@ Cam.projectFrom3DTo2D();
 
 % Plot 2D points
 Cam.plot2DPoints(2);
-
-Cam.plotDistortedPixel2DPoints(3);
+hold on
+Cam.plotRadialDistoted2DPoints(3);
 
 % add pixel noise to 2d projection
 

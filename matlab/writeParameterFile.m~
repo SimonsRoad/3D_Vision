@@ -34,7 +34,7 @@ anisotropicGaussianVariance = scale*[0.001; 0.001; 0.01];
 
 %% Distortion parameters
 kappa = [0;0;0];                % radial distortion
-p = [0;0];                      % tangential distortion
+p = [;0];                      % tangential distortion
 
 %% Save Parameter File
 

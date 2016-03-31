@@ -14,11 +14,10 @@ classdef PointIn2D < handle
         
         noisyCoordinatesInCameraFrame                           %> @param noisyCoordinatesInCameraFrame u-v coordinates
         homogeneousNoisyCoordinatesInCameraFrame                %> @param noisyCoordinatesInCameraFrame Homogeneous u-v coordinates
+        distortedNoisyCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame distorted u-v coordinates
+        homogeneousDistortedNoisyCoordinatesInCameraFrame       %> @param homogeneousDistortedNoisyCoordinatesInCameraFrame Homogeneous distorted u-v coordinates
         
-        
-        distortedNoisyCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
-        homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
-        distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
+        distortedPixelCoordinates                               %> @param distortedNoisyCoordinatesInCameraFrame distorted u-v coordinates
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -56,10 +55,11 @@ classdef PointIn2D < handle
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
             obj.noisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame(1:2);
             
-            % add distortion (radial and tangetial) to noisyCoordinatesInCameraFrame
-            obj.addDistortion(kappa, p); % calculates obj.distortedNoisyCoordinatesInCameraFrame
-            obj.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
-            obj.distortedPixelCoordinates = obj.homogeneousDistortedPixelCoordinates(1:2);
+            % add distortion to projectedCoordinates
+            obj.addDistortion(kappa, p);
+            distorted2D = obj.distortedNoisyCoordinatesInCameraFrame;
+            obj.homogeneousDistortedNoisyCoordinatesInCameraFrame = imageToPixelMatrix * [distorted2D(1); distorted2D(2); 1];
+            obj.distortedNoisyCoordinatesInCameraFrame = obj.homogeneousDistortedNoisyCoordinatesInCameraFrame(1:2);
             
         end % Constructor end
         
