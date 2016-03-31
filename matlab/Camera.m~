@@ -125,16 +125,11 @@ classdef Camera < handle
            axis equal
            
            hold on
-           truePosition = trueRotation' * trueTranslation;
-           plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
+           plot(tre)
            
            % Plot the estimated pose
            hold on
            estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
-           hold on
-           estimatedPosition = estimatedRotation' * estimatedTranslation;
-           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
-           legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
        end % visualizeCamera() end
        
        

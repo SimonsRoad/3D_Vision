@@ -18,6 +18,8 @@ classdef PointIn2D < handle
         
         
         distortedNoisyCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
+        homogeneousDistortedNoisyCoordinatesInCameraFrame       %> @param distortedNoisyCoordinatesInCameraFrame Homogeneous distorted u-v coordinates
+        
         homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
         distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
 
@@ -67,6 +69,7 @@ classdef PointIn2D < handle
             
             % add distortion (radial and tangetial) to noisyCoordinatesInCameraFrame
             obj.addDistortion(kappa, p); % calculates obj.distortedNoisyCoordinatesInCameraFrame
+            obj.homogeneousDistortedNoisyCoordinatesInCameraFrame = [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
             obj.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
             obj.distortedPixelCoordinates = obj.homogeneousDistortedPixelCoordinates(1:2);
             
