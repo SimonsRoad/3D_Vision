@@ -17,7 +17,7 @@ pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
 % Initialize camera with random azimutal and polar angle
 azimutalAngle = 2*pi*rand();
 polarAngle = polarAngleMax*rand();
-Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, px, py, mx, my, skew, xResolution, yResolution);
+Cam = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, x0, y0, kx, ky, skew, xResolution, yResolution);
 
 % Copy pointcloud3D to pointCloud3D of Cam
 Cam.pointCloud3D = pointcloud3D;

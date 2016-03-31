@@ -40,6 +40,9 @@ classdef PointIn2D < handle
             % consider the scale factor
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             
+            % pixel coordinates must be integer, therefore round coordinates
+            obj.homogeneousProjectedCoordinates = floor(obj.homogeneousProjectedCoordinates);
+            
             % euclidean coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
         end % Constructor end
