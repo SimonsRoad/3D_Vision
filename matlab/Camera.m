@@ -145,22 +145,20 @@ classdef Camera < handle
        %> @param this Pointer to Camera object
        function projectFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-
-           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.imagetoPixelCoordinatesTrafo, this.focalLenghtMatrix, this.truePose, this.kappa, this.p);
-
+           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.focalLenghtMatrix);
        end % projectFrom3DTo2D() end
        
        %> @brief
        %>
        %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
        %> @param this Pointer to Camera object
-       %> @param variance Variance of gaussian distribution
-       %> @param pixelWindowInterval Half interval in pixel of window
-       function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+       %> @param mean Mean of gaussian distribution in x- and y-direction
+       %> @param variance Variance of gaussian distribution in x- and y-direction
+       function addPixelNoise(this, noiseType, mean, variance)
            if strcmp(noiseType,'noNoise')
                return
-           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'binomial'))
-               this.pointCloud2D.addPixelNoise(noiseType, variance, pixelWindowInterval);
+           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'gaussian'))
+               this.pointCloud2D.addPixelNoise(noiseType, mean, variance);
            else
                error('addPixelNoise() must be called with the options: noNoise, uniformly, gaussian');
            end

@@ -26,53 +26,31 @@ classdef PointIn2D < handle
         noisyPixelCoordinates                                   %> @param NoisyPixelCoordinates Pixel coordinates of distorted projected points
         
         % Noise in pixel space
-        mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
-        variance                    %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
+        pixelNoiseMean                                          %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
+        pixelNoiseVariance                                      %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
     end % properties end
     
     methods
-        %> @brief Constructor calculates directly coordinates of a 2D point from a noisy 3D correspondence
+        %> @brief Constructor projects the true 3D points in camera frame into the focal plane of the camera
         %>
-        %> Formula: x = K*[R|t]*X
+        %> Formula: x = F*X_C
         %> x := homogeneous coordinates of a 2D point
-        %> X := homogeneous coordinates of a 3D point
-        %> K := camera calibration matrix
-        %> R := rotation matrix from world into camera frame
-        %> t := translation of camera in camera frame
-        %> Note: [R|t] is a 3x4 matrix, that is cameratruePose(1:3,:)
+        %> X_C := coordinates of a noisy 3D point in camera frame
+        %> F := Transformation matrix into focal plane, F = diag([f, f, 1])
         %>
         %> @param noisyPointIn3D A noisy point in 3D
-        %> @param calibrationMatrix Camera calibration matrix
+        %> @param focalLengthMatrix Transformation matrix into focal plane
         %> @param cameraTruePose Ground truth of camera
         %>
         %> @retval obj An object of class PointIn2D
-
-        % First, do the coordinates in pixel space
-
-        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, imageToPixelMatrix, focalLengthMatrix, cameraTruePose, kappa, p)
-            % project noisy 3D point with x = K*[R|t]*X
-            obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            % consider the scale factor
+        function obj = PointIn2D(noisyPointIn3D, focalLengthMatrix)
+            % Project true 3D points in camera frame to the focal plane
+            obj.homogeneousProjectedCoordinates = focalLengthMatrix * noisyPointIn3D.trueCoordinatesInCameraFrame;
+            % Normalize to get homogeneous representation
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             
-            % Now for the coordinates in camera frame
-            % Transform noisy 3D point with x = K_tilde*[R|t]*X, K_tilde is
-            % the calibration matrix but without the conversion to pixel
-            % space
-            % project noisy 3D point in u,v coordinates
-            obj.homogeneousNoisyCoordinatesInCameraFrame = focalLengthMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            % normalization
-            obj.homogeneousNoisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame / obj.homogeneousNoisyCoordinatesInCameraFrame(3);
-            
-            % euclidean coordinates
+            % Get euclidean coordinates from homogeneous coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
-            obj.noisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame(1:2);
-            
-            % add distortion (radial and tangetial) to noisyCoordinatesInCameraFrame
-            obj.addDistortion(kappa, p); % calculates obj.distortedNoisyCoordinatesInCameraFrame
-            obj.homogeneousDistortedNoisyCoordinatesInCameraFrame = [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
-            obj.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * [obj.distortedNoisyCoordinatesInCameraFrame(1); obj.distortedNoisyCoordinatesInCameraFrame(2); 1];
-            obj.distortedPixelCoordinates = obj.homogeneousDistortedPixelCoordinates(1:2);
         end % Constructor end
         
         
@@ -97,7 +75,7 @@ classdef PointIn2D < handle
         %> @param this Pointer to object
         %> @param mean Vector of means, in camera frame
         function setMean(this, mean)
-            this.mean = mean;
+            this.pixelNoiseMean = mean;
         end % setMean() end
         
 
@@ -106,33 +84,33 @@ classdef PointIn2D < handle
         %> @param this Pointer to object
         %> @param mean Vector of variances
         function setVariance(this, variance)
-            this.variance = variance;
+            this.pixelNoiseVariance = variance;
         end % setVariance() end
         
-        %> @brief Add pixel noise to this point
+        %> @brief Add pixel noise to this 2D point
         %>
         %> @param this Pointer to object
         %> @param noiseType String type of noise
-        %> @param variance Variance of gaussian distribution
-        %> @param pixelWindowInterval Half interval in pixel of window
-        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+        %> @param mean Mean of gaussian distribution in x- and y-direction
+        %> @param variance Variance of gaussian distribution in x- and y-direction
+        function addPixelNoise(this, noiseType, mean, variance)
             % discrete uniformly distributed noise
             if strcmp(noiseType,'uniformly')
                 % genereate noise in x- and y-direction
-                noiseInPixelX = unidrnd(pixelWindowInterval) - pixelWindowInterval;
-                noiseInPixelY = unidrnd(pixelWindowInterval) - pixelWindowInterval;
-            % discrete binomial distributed noise
-            elseif strcmp(noiseType,'binomial')
+                noiseInPixelX = 2*variance(1)*rand() - variance(1);
+                noiseInPixelY = 2*variance(2)*rand() - variance(2);
+            % gaussian distributed noise
+            elseif strcmp(noiseType,'gaussian')
                 % generate noise in x- and y-direction
-                noiseInPixelX = this.generateDRV(variance, pixelWindowInterval);
-                noiseInPixelY = this.generateDRV(variance, pixelWindowInterval);
+                noiseInPixelX = normrnd(mean(1), variance(1));
+                noiseInPixelY = normrnd(mean(2), variance(2));
             end %if end
             
             % add noise to pixel coordinates
             this.homogeneousNoisyPixelCoordinates(1) = this.homogeneousDistortedPixelCoordinates(1) + noiseInPixelX;
             this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousDistortedPixelCoordinates(2) + noiseInPixelY;
             
-            % extract euclidean noisy pixel coordinates
+            % extract euclidean noisy pixel coordinates from homogeneous coordinates
             this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
@@ -152,32 +130,5 @@ classdef PointIn2D < handle
                + 2 * p(2) * uvCoordinates(1) * uvCoordinates(2) + p(1) * (radiusSquared + 2 * uvCoordinates(2)^2);
            
         end % addDistortion() end
-        
-
-        %> @brief Helper function
-        %>
-        %> @param this Pointer to PointIn2D object
-        %> @param variance Variance of gaussian distribution
-        %> @param pixelWindowInterval Half interval in pixel of window
-        function discreteRandomVariable = generateDRV(this, variance, pixelWindowInterval)
-            % Generate random uniformly distributed variable
-            u = rand();
-            
-            % Desired probability density function
-            pdf = makedist('Normal',0,variance);
-            
-            % Cumulative distribution function
-            F = cdf(pdf,-pixelWindowInterval:pixelWindowInterval);
-            
-            % Find discrete random variable
-            DRV = find(F <= u);
-            
-            % find last index at which F <= u and u < F
-            if (isempty(DRV))
-                discreteRandomVariable = - pixelWindowInterval;
-            else
-                discreteRandomVariable = DRV(end) - pixelWindowInterval;
-            end
-        end % generateDRV() end
     end % methods end
 end % classdef end
