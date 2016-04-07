@@ -49,9 +49,9 @@ classdef PointIn2D < handle
 
         % First, do the coordinates in pixel space
 
-        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, imageToPixelMatrix, focalLengthMatrix, cameraTruePose, kappa, p)
+        function obj = PointIn2D(pointIn3D, calibrationMatrix, imageToPixelMatrix, focalLengthMatrix, cameraTruePose, kappa, p)
             % project noisy 3D point with x = K*[R|t]*X
-            obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
+            obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * pointIn3D.homogeneousTrueCoordinatesInWorldFrame;
             % consider the scale factor
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             
@@ -60,7 +60,7 @@ classdef PointIn2D < handle
             % the calibration matrix but without the conversion to pixel
             % space
             % project noisy 3D point in u,v coordinates
-            obj.homogeneousNoisyCoordinatesInCameraFrame = focalLengthMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
+            obj.homogeneousNoisyCoordinatesInCameraFrame = focalLengthMatrix * cameraTruePose * pointIn3D.homogeneousTrueCoordinatesInWorldFrame;
             % normalization
             obj.homogeneousNoisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame / obj.homogeneousNoisyCoordinatesInCameraFrame(3);
             
