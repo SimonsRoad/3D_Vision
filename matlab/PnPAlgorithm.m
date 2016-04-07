@@ -42,11 +42,8 @@ classdef PnPAlgorithm < handle
                 obj.matrixOfHomogeneousNoisy3DPoints = zeros(4,obj.numberOfPoints);
                 obj.matrixOfHomogeneousNoisy2DPoints = zeros(3,obj.numberOfPoints);
                 for i = 1:obj.numberOfPoints
-                    obj.matrixOfNoisy3DPoints(:,i) = pointCloud3D_.pointsIn3D(i).noisyCoordinatesInWorldFrame;
-                    obj.matrixOfNoisy3DPoints(1,i) = -obj.matrixOfNoisy3DPoints(1,i);
-                    obj.matrixOfNoisy3DPoints(2,i) = -obj.matrixOfNoisy3DPoints(2,i);
+                    obj.matrixOfNoisy3DPoints(:,i) = -pointCloud3D_.pointsIn3D(i).noisyCoordinatesInWorldFrame;
                     obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame;
-                    %obj.matrixOfNoisy2DPoints(1,i) = -obj.matrixOfNoisy2DPoints(1,i);
                     obj.matrixOfHomogeneousNoisy3DPoints(:,i) = pointCloud3D_.pointsIn3D(i).homogeneousNoisyCoordinatesInWorldFrame;
                     obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousDistortedNoisyCoordinatesInCameraFrame;
                 end
@@ -60,7 +57,6 @@ classdef PnPAlgorithm < handle
                 addpath('EPnP')
                 disp('Using EPnP for pose estimation.')
                 [R,t,~,~] = efficient_pnp(this.matrixOfHomogeneousNoisy3DPoints.',this.matrixOfHomogeneousNoisy2DPoints.',intrinsicMatrix);
-                t = -t;
             end
             if strcmp(this.algorithm, 'EPNP-Gauss')
                 addpath('EPnP')
@@ -72,19 +68,16 @@ classdef PnPAlgorithm < handle
                 addpath('DLT')
                 disp('Using DLT for pose estimation.')
                 [R,t] = DLT(this.matrixOfNoisy3DPoints,this.matrixOfNoisy2DPoints/intrinsicMatrix(1,1));
-                t = -t;
             end
             if strcmp(this.algorithm, 'LHM')
                 addpath('LHM')
                 disp('Using LHM for pose estimation.')
                 [R,t] = LHM(this.matrixOfNoisy3DPoints,this.matrixOfNoisy2DPoints/intrinsicMatrix(1,1));
-                t = -t;
             end
             if strcmp(this.algorithm, 'RPNP')
                 addpath('RPNP')
                 disp('Using RPNP for pose estimation.')
                 [R,t] = RPnP(this.matrixOfNoisy3DPoints,this.matrixOfNoisy2DPoints/intrinsicMatrix(1,1));
-                t = -t;
             end
         end
         

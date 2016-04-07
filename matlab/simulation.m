@@ -8,7 +8,7 @@ load(parameterFile);
 %% generate 3D points
 
 % Initialize random number generator
-rng(0,'twister')
+rng('shuffle','twister')
 
 % Generate 3D Pointcloud
 pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
@@ -39,14 +39,14 @@ camera.pointCloud3D.plotNoisyPointcloud('false')
 % Project 3d to 2d points
 camera.projectFrom3DTo2D();
 
-camera.plotDistortedPixel2DPoints(3);
+% camera.plotDistortedPixel2DPoints(3);
 
 % add pixel noise to 2d projection
 camera.addPixelNoise('binomial', 1, 5);
 
 % Plot 2D points
-figure(2)
-camera.plot2DPoints();
+% figure(2)
+% camera.plot2DPoints();
 
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);

@@ -241,6 +241,7 @@ classdef Camera < handle
        function estimatePose(this)
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
+           t(3) = -t(3);
            this.estimatedPose(1:3,4) = t;
        end
        
