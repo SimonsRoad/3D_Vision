@@ -53,7 +53,7 @@ classdef Camera < handle
        %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, kappa, p)
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, xResolution, yResolution)
            % Properties
            obj.f = f;
            obj.x0 = x0;
@@ -61,6 +61,8 @@ classdef Camera < handle
            obj.kx = kx;
            obj.ky = ky;
            obj.skew = skew;
+           obj.xResolution = xResolution;
+           obj.yResolution = yResolution;
            
            % Camera translation vector w.r.t. camera frame t = R_CI * C_I
            t = [0; 0; -radius];
@@ -96,43 +98,8 @@ classdef Camera < handle
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
            
-           % Set distortion parameters
-           obj.kappa = kappa;   % radial distortion
-           obj.p = p;           % tangential distortion
-
        end % Camera() end
-       
-       
-       %> @brief Visualizes the camera
-       %>
-       %> @param this Pointer of Camera object
-       %> @param figureHandle Figure number
-       %>
-       %> @retval trueCam Handle to true camera pose plot
-       %> @retval estimatedCam Handle to estimated camera pose plot
-       function [trueCam, estimatedCam] = visualizeCamera(this, figureHandle)
-           % Get true translation and rotation from truePose
-           trueTranslation = this.truePose(1:3,4);
-           trueRotation = this.truePose(1:3,1:3);
-           
-           % Get estimated translation and rotation from estimatedPose
-           estimatedTranslation = this.estimatedPose(1:3,4);
-           estimatedRotation = this.estimatedPose(1:3,1:3);
-           
-           % Plot the true pose
-           figure(figureHandle)
-           trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
-           axis equal
-           
-           hold on
-           plot(tre)
-           
-           % Plot the estimated pose
-           hold on
-           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
-       end % visualizeCamera() end
-       
-       
+     
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
        %> @param this Pointer to Camera object
@@ -143,21 +110,56 @@ classdef Camera < handle
 
        end % projectFrom3DTo2D() end
        
+       %> @brief Add distortion to u,v coordinates
+       %>
+       %> @param this Pointer to object
+       %> @param kappa Radial distortion parameters 3-dimensional vector
+       %> @param p Tangential distortion parameters 2-dimensional vector
+       function addDistortion(this, kappa, p)
+           this.pointCloud2D.addDistortion(kappa, p);
+       end
        
+       function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
+          this.pointCloud2D.setDistortedPixelCoordinatesFromHomogeneousCoordinates 
+       end
+       
+       %> @brief
+       %>
+       %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
+       %> @param this Pointer to Camera object
+       %> @param variance Variance of gaussian distribution
+       %> @param pixelWindowInterval Half interval in pixel of window
+       function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+           if strcmp(noiseType,'noNoise')
+               return
+           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'binomial'))
+               this.pointCloud2D.addPixelNoise(noiseType, variance, pixelWindowInterval);
+           else
+               error('addPixelNoise() must be called with the options: noNoise, uniformly, gaussian');
+           end
+       end % addPixelNoise() end
+       
+       function calculateHomoegenousDistortedPixelPoints(this)
+           this.pointCloud2D.calculateHomoegenousDistortedPixelPoints(this.calculateUVtoPixelMatrix);
+       end
+       
+        
        %> @brief Plot projected and noisy 2D points
        %>
        %> @param this Pointer to object
        %> @param figureHandle Handle to figure number
-       function plot2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot projected 2D points
-           this.pointCloud2D.plotProjectedPoints(figureHandle);
-           
-           % Plot noisy 2D points
+       function plot2DPoints(this)
+           % Plot 2D pixel points
+           this.pointCloud2D.plotPixelPoints();
+%            xlim([-this.x0, this.xResolution - this.x0])
+%            ylim([-this.y0, this.yResolution - this.y0])
+           title('3D to 2D projection')
+           xlabel('camera x-axis')
+           ylabel('camera y-axis')
            hold on
-%            this.pointCloud2D.plotNoisyPoints(figureHandle);
+           
+           % Plot 2D noisy pixel points
+           this.pointCloud2D.plotNoisyPixelPoints();
            hold off
        end % plot2DPoints() end
        
@@ -186,7 +188,7 @@ classdef Camera < handle
            this.pointCloud2D.plotDistortedPixelPoints(figureHandle);
            
        end % plot2DPoints() end
-       
+      
        
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
@@ -265,6 +267,40 @@ classdef Camera < handle
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
        end % getPose() end
+       
+       %> @brief Visualizes the camera
+       %>
+       %> @param this Pointer of Camera object
+       %> @param figureHandle Figure number
+       %>
+       %> @retval trueCam Handle to true camera pose plot
+       %> @retval estimatedCam Handle to estimated camera pose plot
+       function [trueCam, estimatedCam] = visualizeCamera(this, figureHandle)
+           % Get true translation and rotation from truePose
+           trueTranslation = this.truePose(1:3,4);
+           trueRotation = this.truePose(1:3,1:3);
+           
+           % Get estimated translation and rotation from estimatedPose
+           estimatedTranslation = this.estimatedPose(1:3,4);
+           estimatedRotation = this.estimatedPose(1:3,1:3);
+           
+           % Plot the true pose
+           figure(figureHandle)
+           trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
+           axis equal
+           
+           hold on
+           truePosition = trueRotation' * trueTranslation;
+           plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
+           
+           % Plot the estimated pose
+           hold on
+           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
+           hold on
+           estimatedPosition = estimatedRotation' * estimatedTranslation;
+           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
+           legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
+       end % visualizeCamera() end
        
        
    end % methods end

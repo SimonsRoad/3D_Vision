@@ -26,7 +26,9 @@ classdef Pointcloud2D < handle
             
             % Construct all the 2D correspondences with a loop
             for i = 1:obj.numberOfPoints
+
                 obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, focalLengthMatrix, cameraTruePose);
+                
             end % for loop end
         end % Constructor end
         
@@ -72,7 +74,7 @@ classdef Pointcloud2D < handle
         function transformFromPixelToImage(this, calibrationMatrix)
             % for every 2D point
             for i = 1:this.numberOfPoints
-                this.pointsIn2D(i).transformFromPixelToImage(calibrationMatrix);
+                this.pointsIn2D(i).transformFromPixelToImage(thicalibrationMatrix);
             end
         end
         
