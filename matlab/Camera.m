@@ -9,8 +9,8 @@
 classdef Camera < handle
    properties
        % Camera pose
-       truePose                     %> @param truePose True pose of camera
-       estimatedPose                %> @param estimatedPose Estimated pose of camera
+       truePose                     %> @param truePose True pose of camera in world coordinates
+       estimatedPose                %> @param estimatedPose Estimated pose of camera in world coordinates
        
        % Camera parameters
        f                            %> @param f Focal length
@@ -126,9 +126,11 @@ classdef Camera < handle
            trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
            axis equal
            
+           % Camera Center
            hold on
            truePosition = trueRotation' * trueTranslation;
            plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
+           
            
            % Plot the estimated pose
            hold on
@@ -137,6 +139,34 @@ classdef Camera < handle
            estimatedPosition = estimatedRotation' * estimatedTranslation;
            plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
            legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
+           
+           % Camera frame of true pose
+           P1 = truePosition;
+           P2 = truePosition+trueRotation'*[1; 0; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3))
+           P2 = truePosition+trueRotation'*[0; 1; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3))
+           P2 = truePosition+trueRotation'*[0; 0; 1];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3))
+           
+           % Camera frame of estimated pose
+           P1 = estimatedPosition;
+           P2 = estimatedPosition+estimatedRotation'*[1; 0; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           P1 = estimatedPosition;
+           P2 = estimatedPosition+estimatedRotation'*[0; 1; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           P1 = estimatedPosition;
+           P2 = estimatedPosition+estimatedRotation'*[0; 0; 1];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           
+           
        end % visualizeCamera() end
        
        

@@ -4,7 +4,7 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 50;
+numberOfPoints = 500;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
@@ -32,8 +32,8 @@ pnpAlgorithm = 'DLT'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
 % Noise Models
 pointIn3DNoiseModel = 'anisotropicGaussian';
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
-anisotropicGaussianMean = scale*[1.0; 1.0; 1.0];
-anisotropicGaussianVariance = scale*[0.0; 0.0; 0.0];
+anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
+anisotropicGaussianVariance = scale*[0.01; 0.01; 0.1];
 
 %% Distortion parameters
 kappa = [0;0;0];                % radial distortion

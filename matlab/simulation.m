@@ -34,7 +34,7 @@ hold on
 camera.pointCloud3D.addNoiseToAllPoints(trueP)
 
 % Plot the point cloud of the noisy points
-camera.pointCloud3D.plotNoisyPointcloud('false')
+camera.pointCloud3D.plotNoisyPointcloud('true')
 
 % Project 3d to 2d points
 camera.projectFrom3DTo2D();
@@ -42,7 +42,7 @@ camera.projectFrom3DTo2D();
 % camera.plotDistortedPixel2DPoints(3);
 
 % add pixel noise to 2d projection
-camera.addPixelNoise('binomial', 1, 5);
+%camera.addPixelNoise('binomial', 1, 5);
 
 % Plot 2D points
 % figure(2)

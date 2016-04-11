@@ -11,7 +11,8 @@ classdef PnPAlgorithm < handle
         matrixOfHomogeneousNoisy3DPoints       %> @param matrixOfNoisy3DPoints The noisy 3D points *in world frame* in matrix form
         matrixOfHomogeneousNoisy2DPoints       %> @param matrixOfNoisy2DPoints The noisy 2D points *in camera frame *in matrix form
 
-        
+        % Helpers
+        meanOfNoisy3DPoints
     end
     
     % Methods
@@ -44,9 +45,14 @@ classdef PnPAlgorithm < handle
                 for i = 1:obj.numberOfPoints
                     obj.matrixOfNoisy3DPoints(:,i) = -pointCloud3D_.pointsIn3D(i).noisyCoordinatesInWorldFrame;
                     obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame;
-                    obj.matrixOfHomogeneousNoisy3DPoints(:,i) = pointCloud3D_.pointsIn3D(i).homogeneousNoisyCoordinatesInWorldFrame;
+                    obj.matrixOfHomogeneousNoisy3DPoints(:,i) = -pointCloud3D_.pointsIn3D(i).homogeneousNoisyCoordinatesInWorldFrame;
                     obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousDistortedNoisyCoordinatesInCameraFrame;
                 end
+%                 % The 3D coordinates have to be centered
+%                 obj.meanOfNoisy3DPoints = mean(obj.matrixOfNoisy3DPoints,2);
+%                 for i = 1:obj.numberOfPoints
+%                     obj.matrixOfNoisy3DPoints(:,i) = obj.matrixOfNoisy3DPoints(:,i)-obj.meanOfNoisy3DPoints;
+%                 end
             end
         end
         
