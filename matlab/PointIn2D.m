@@ -25,8 +25,8 @@ classdef PointIn2D < handle
         homogeneousNoisyPixelCoordinates                        %> @param homogeneousNoisyPixelCoordinates Homogeneous pixel coordinates of distorted projected points
         noisyPixelCoordinates                                   %> @param NoisyPixelCoordinates Pixel coordinates of distorted projected points
         
-        backProjectionFromPixelToImageCoordinates
-        homogeneousBackProjectionFromPixelToImageCoordinates
+        backProjectionFromPixelToImageCoordinates               %> @param backProjectionFromPixelToImageCoordinates after adding pixel noise we transform pixel coord. back to euclidean image coord.
+        homogeneousBackProjectionFromPixelToImageCoordinates    %> @param homogeneousBackProjectionFromPixelToImageCoordinates transformation from pixel to homogeneous image coordinates after pixel noise
         
         % Noise in pixel space
         mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -73,6 +73,7 @@ classdef PointIn2D < handle
             
         end % Constructor end
         
+        % 1. add distortion
         %> @brief Add distortion to u,v coordinates
         %>
         %> @param this Pointer to object
@@ -90,16 +91,26 @@ classdef PointIn2D < handle
            this.homogeneousDistortedNoisyCoordinatesInCameraFrame = [ this.distortedNoisyCoordinatesInCameraFrame(1); this.distortedNoisyCoordinatesInCameraFrame(2);1];
         end % addDistortion() end
         
+        
+        % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
+        %> @brief Calculate the homogeneous distorted points in uv coordinates
+        %>
+        %> @param this Pointer to PointIn2D object 
+        %> @param imagetoPixelCoordinatesTrafo [camera.kx, camera.skew, camera.x0; 0, camera.ky, camera.y0; 0, 0, 1];
         function calculateHomoegeneousDistortedPixelCoordinates(this, imageToPixelMatrix)
             pixelCoordinatesDistorted = [this.distortedNoisyCoordinatesInCameraFrame(1); this.distortedNoisyCoordinatesInCameraFrame(2); 1]; %transformFromEuclideanToHomogeneous(this.distortedNoisyCoordinatesInCameraFrame);
             this.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * pixelCoordinatesDistorted;
-        end
+        end % calculateHomoegeneousDistortedPixelCoordinates() end 
         
+        % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
+        %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
+        %>
+        %> @param this Pointer to object
         function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
             this.distortedPixelCoordinates = this.homogeneousDistortedPixelCoordinates(1:2);
-        end
+        end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
         
-        
+        % 4. add pixel noise
         %> @brief Add pixel noise to this point
         %>
         %> @param this Pointer to object
@@ -128,25 +139,18 @@ classdef PointIn2D < handle
             this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
+        % 5. back projection to image coordinates
         %> @brief Transform from pixel coordinates (x,y) to image coordinates (u,v)
         %> 
         %> @param this Pointer to object
+        %> @param calibrationMatrix calibration matrix of camera
         function transformFromPixelToImage(this, calibrationMatrix)
            this.homogeneousBackProjectionFromPixelToImageCoordinates = calibrationMatrix \ this.homogeneousNoisyPixelCoordinates;
            this.backProjectionFromPixelToImageCoordinates = this.homogeneousBackProjectionFromPixelToImageCoordinates(1:2);
-           
-        end
+        end % transformFromPixelToImage() end
         
-        %> @brief Returns euclidean coordinates of a homogeneous 2D point
-        %>
-        %> @param homogeneousCoordinates homogeneous coordinates of a 2D point
-        function euclideanCoordinates = transformFromHomogeneousToEuclidian(homogeneousCoordinates)
-            euclideanCoordinates = homogeneousCoordinates(1:2);
-        end
-        
-        function homogeneousCoordinates = transformFromEuclideanToHomogeneous(euclideanCoordinates)
-            homogeneousCoordinates = [euclideanCoordinates(1); euclideanCoordinates(2); 1];      
-        end
+        % 6. undistortion
+       %%%%%% has to be done
         
         %> @brief Returns coordinates of this object of PointIn2D
         %>

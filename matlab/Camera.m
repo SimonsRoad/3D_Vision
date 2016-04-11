@@ -110,6 +110,7 @@ classdef Camera < handle
 
        end % projectFrom3DTo2D() end
        
+       % 1. Add distortion
        %> @brief Add distortion to u,v coordinates
        %>
        %> @param this Pointer to object
@@ -117,16 +118,25 @@ classdef Camera < handle
        %> @param p Tangential distortion parameters 2-dimensional vector
        function addDistortion(this, kappa, p)
            this.pointCloud2D.addDistortion(kappa, p);
-       end
+       end % addDistortion() end
        
+       % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
+       %> @brief Calculate the homogeneous distorted points in uv coordinates
+       %>
+       %> @param this Pointer to object (this.imagetoPixelCoordinatesTrafo) is needed
        function calculateHomoegenousDistortedPixelPoints(this)
            this.pointCloud2D.calculateHomoegenousDistortedPixelPoints(this.imagetoPixelCoordinatesTrafo);
-       end
+       end % calculateHomoegenousDistortedPixelPoints() end
        
+       % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
+       %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
+       %>
+       %> @param this Pointer to object
        function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
           this.pointCloud2D.setDistortedPixelCoordinatesFromHomogeneousCoordinates(); 
-       end
+       end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
        
+       % 4. add pixel noise
        %> @brief
        %>
        %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
@@ -143,11 +153,17 @@ classdef Camera < handle
            end
        end % addPixelNoise() end
        
+       % 5. back projection to image coordinates
+       %> @brief transform from xy (pixel) to uv (image) coordinates
+       %>
+       %> @param this Pointer to Camera object
        function transformFromPixelToImage(this)
            this.pointCloud2D.transformFromPixelToImage(this.K); 
-       end
+       end % transformFromPixelToImage() end
        
-        
+       % 6. undistortion
+       %%%%%% has to be done
+       
        %> @brief Plot projected and noisy 2D points
        %>
        %> @param this Pointer to object
@@ -176,8 +192,7 @@ classdef Camera < handle
            figure(figureHandle)
            
            % Plot distortoted 2D points
-           this.pointCloud2D.plotDistortedImagePoints(figureHandle);
-           
+           this.pointCloud2D.plotDistortedImagePoints(figureHandle);         
        end % plot2DPoints() end
        
        %> @brief Plot distorted 2D points in pixel coordinates
@@ -201,14 +216,14 @@ classdef Camera < handle
            this.imagetoPixelCoordinatesTrafo = [this.kx, this.skew, this.x0;
                0, this.ky, this.y0;
                0, 0, 1];
-       end
+       end % calculateUVtoPixelMatrix() end
        
        %> @brief Calculates the focallength matrix [f 0 0; 0 f 0; 0 0 1]
        %> 
        %> @param this Pointer to object
        function calculateFocallengthMatrix(this)
            this.focalLenghtMatrix = [this.f, 0, 0; 0, this.f, 0; 0, 0, 1];
-       end
+       end % calculateFocallengthMatrix() end
        
        %> @brief Calculates the camera calibration matrix
        %>
@@ -223,7 +238,7 @@ classdef Camera < handle
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
            this.estimatedPose(1:3,4) = t;
-       end
+       end % estimatePose() end
        
        %> @brief Calculate the error in the pose estimation
        %>

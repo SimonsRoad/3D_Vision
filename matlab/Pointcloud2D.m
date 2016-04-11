@@ -30,6 +30,7 @@ classdef Pointcloud2D < handle
             end % for loop end
         end % Constructor end
         
+        % 1. add distortion
         %> @brief
         %>
         %> @param this Pointer to Pointcloud2D object
@@ -42,20 +43,30 @@ classdef Pointcloud2D < handle
            end
         end % addDistortion() end
         
+        % 2. calculate homogeneous distorted pixel points
+        %> @brief
+        %>
+        %> @param this Pointer to Pointcloud2D object
+        %> @param imageToPixelMatrix [this.kx, this.skew, this.x0; 0, this.ky, this.y0; 0, 0, 1];
         function calculateHomoegenousDistortedPixelPoints(this, imageToPixelMatrix)
             % for every 2D point
            for i = 1:this.numberOfPoints
                this.pointsIn2D(i).calculateHomoegeneousDistortedPixelCoordinates(imageToPixelMatrix);
            end
-        end
+        end % calculateHomoegenousDistortedPixelPoints() end
         
+        % 3. calculate euclidean distorted pixel points from homoegenous distorted pixel points
+        %> @brief
+        %>
+        %> @param this Pointer to Pointcloud2D object
         function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
              % for every 2D point
            for i = 1:this.numberOfPoints
                this.pointsIn2D(i).setDistortedPixelCoordinatesFromHomogeneousCoordinates();
            end
-        end
+        end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
         
+        % 4. add pixel noise
         %> @brief
         %>
         %> @param this Pointer to Pointcloud2D object
@@ -69,12 +80,20 @@ classdef Pointcloud2D < handle
             end
         end % addPixelNoise() end
         
+        % 5. back projection
+        %> @brief
+        %>
+        %> @param this Pointer to Pointcloud2D object
+        %> @param calibrationMatrix calibration matrix
         function transformFromPixelToImage(this, calibrationMatrix)
             % for every 2D point
             for i = 1:this.numberOfPoints
                 this.pointsIn2D(i).transformFromPixelToImage(calibrationMatrix);
             end
-        end
+        end % transformFromPixelToImage() end
+        
+        % 6. undistortion
+       %%%%%% has to be done
         
         %> @brief Plots the projected 2D points
         %>
