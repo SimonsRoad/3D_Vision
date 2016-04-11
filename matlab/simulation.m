@@ -18,8 +18,10 @@ pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
 azimutalAngle = 2*pi*rand();
 polarAngle = polarAngleMax*rand();
 
-camera = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, x0, y0, kx, ky, skew, xResolution, yResolution);
+%% Initialize a Camera object
 
+% Construct Camera object
+camera = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, x0, y0, kx, ky, skew, xResolution, yResolution);
 % Copy pointcloud3D to pointCloud3D of camera
 camera.pointCloud3D = pointcloud3D;
 
@@ -34,8 +36,12 @@ hold on
 camera.pointCloud3D.addNoiseToAllPoints(trueP);
 
 % Plot the point cloud of the noisy points
-camera.pointCloud3D.plotNoisyPointcloud('false');
 
+camera.pointCloud3D.plotNoisyPointcloud('false');
+hold off
+
+
+%% Project true 3D points to 2D points
 % Project 3d to 2d points
 camera.projectFrom3DTo2D();
 
@@ -48,8 +54,10 @@ camera.calculateHomoegenousDistortedPixelPoints();
 % calculate euclidean pixels
 camera.setDistortedPixelCoordinatesFromHomogeneousCoordinates();
 
+%% 
+
 % add pixel noise to 2d projection
-camera.addPixelNoise('binomial', 1, 5);
+camera.addPixelNoise('gaussian', [0,0], [1,1]);
 
 % back transformation from pixel to image coordinates
 camera.transformFromPixelToImage();

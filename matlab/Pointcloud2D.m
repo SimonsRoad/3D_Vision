@@ -13,20 +13,28 @@ classdef Pointcloud2D < handle
     methods
         %> @brief Constructor projects a 3D pointcloud to 2D pointcloud based on camera ground truth pose
         %>
-        %> @param calibrationMatrix The calibration matrix of a camera
-        %> @param cameraTruePose Ground truth pose of a camera
         %> @param pointCloud3D 3D pointcloud
+        %> @param focalLengthMatrix Transformation matrix to the focal plane
+        %> @param cameraTruePose Ground truth pose of a camera
         %>
         %> @retval obj array with points in 2D
 
-        function obj = Pointcloud2D(pointCloud3D, calibrationMatrix, focalLengthMatrix, cameraTruePose)
+
+        %function obj = Pointcloud2D(pointCloud3D, calibrationMatrix, focalLengthMatrix, cameraTruePose)
+
+
+        function obj = Pointcloud2D(pointCloud3D, focalLengthMatrix)
 
             % Get number of points in pointCloud3D
             obj.numberOfPoints = pointCloud3D.getNumberOfPoints();
             
             % Construct all the 2D correspondences with a loop
             for i = 1:obj.numberOfPoints
-                obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, focalLengthMatrix, cameraTruePose);
+
+                %obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, focalLengthMatrix, cameraTruePose);
+
+                obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), focalLengthMatrix);
+
             end % for loop end
         end % Constructor end
         
@@ -67,16 +75,16 @@ classdef Pointcloud2D < handle
         end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
         
         % 4. add pixel noise
-        %> @brief
+        %> @brief Adds pixel noise to pixel representation of the 2d projected point
         %>
         %> @param this Pointer to Pointcloud2D object
         %> @param noiseType String type of noise
-        %> @param variance Variance of gaussian distribution
-        %> @param pixelWindowInterval Half interval in pixel of window
-        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+        %> @param mean Mean of gaussian distribution in x- and y-direction
+        %> @param variance Variance of gaussian distribution in x- and y-direction
+        function addPixelNoise(this, noiseType, mean, variance)
             % for every 2D point
             for i = 1:this.numberOfPoints
-                this.pointsIn2D(i).addPixelNoise(noiseType, variance, pixelWindowInterval);
+                this.pointsIn2D(i).addPixelNoise(noiseType, mean, variance);
             end
         end % addPixelNoise() end
         
@@ -133,7 +141,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','red')
+            plot(X,Y,'.','Color','green')
             
         end % plotNoisyPoints() end
         

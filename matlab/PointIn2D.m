@@ -29,45 +29,32 @@ classdef PointIn2D < handle
         homogeneousBackProjectionFromPixelToImageCoordinates    %> @param homogeneousBackProjectionFromPixelToImageCoordinates transformation from pixel to homogeneous image coordinates after pixel noise
         
         % Noise in pixel space
-        mean                        %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
-        variance                    %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
+        pixelNoiseMean                                          %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
+        pixelNoiseVariance                                      %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
     end % properties end
     
     methods
-        %> @brief Constructor calculates directly coordinates of a 2D point from a noisy 3D correspondence
+        %> @brief Constructor projects the true 3D points in camera frame into the focal plane of the camera
         %>
-        %> Formula: x = K*[R|t]*X
+        %> Formula: x = F*X_C
         %> x := homogeneous coordinates of a 2D point
-        %> X := homogeneous coordinates of a 3D point
-        %> K := camera calibration matrix
-        %> R := rotation matrix from world into camera frame
-        %> t := translation of camera in camera frame
-        %> Note: [R|t] is a 3x4 matrix, that is cameratruePose(1:3,:)
+        %> X_C := coordinates of a noisy 3D point in camera frame
+        %> F := Transformation matrix into focal plane, F = diag([f, f, 1])
         %>
         %> @param noisyPointIn3D A noisy point in 3D
-        %> @param calibrationMatrix Camera calibration matrix
+        %> @param focalLengthMatrix Transformation matrix into focal plane
         %> @param cameraTruePose Ground truth of camera
         %>
         %> @retval obj An object of class PointIn2D
 
         % First, do the coordinates in pixel space
-
-        function obj = PointIn2D(noisyPointIn3D, calibrationMatrix, focalLengthMatrix, cameraTruePose)
-            % project noisy 3D point with x = K*[R|t]*X
-            obj.homogeneousProjectedCoordinates = calibrationMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            % consider the scale factor
+        function obj = PointIn2D(noisyPointIn3D, focalLengthMatrix)
+            % Project true 3D points in camera frame to the focal plane
+            obj.homogeneousProjectedCoordinates = focalLengthMatrix * noisyPointIn3D.trueCoordinatesInCameraFrame;
+            % Normalize to get homogeneous representation
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             
-            % Now for the coordinates in camera frame
-            % Transform noisy 3D point with x = K_tilde*[R|t]*X, K_tilde is
-            % the calibration matrix but without the conversion to pixel
-            % space
-            % project noisy 3D point in u,v coordinates
-            obj.homogeneousNoisyCoordinatesInCameraFrame = focalLengthMatrix * cameraTruePose * noisyPointIn3D.homogeneousNoisyCoordinatesInWorldFrame;
-            % normalization
-            obj.homogeneousNoisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame / obj.homogeneousNoisyCoordinatesInCameraFrame(3);
-            
-            % euclidean coordinates
+            % Get euclidean coordinates from homogeneous coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
             obj.noisyCoordinatesInCameraFrame = obj.homogeneousNoisyCoordinatesInCameraFrame(1:2);
             
@@ -101,33 +88,35 @@ classdef PointIn2D < handle
             pixelCoordinatesDistorted = [this.distortedNoisyCoordinatesInCameraFrame(1); this.distortedNoisyCoordinatesInCameraFrame(2); 1]; %transformFromEuclideanToHomogeneous(this.distortedNoisyCoordinatesInCameraFrame);
             this.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * pixelCoordinatesDistorted;
         end % calculateHomoegeneousDistortedPixelCoordinates() end 
+
         
         % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
         %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
         %>
         %> @param this Pointer to object
+
         function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
             this.distortedPixelCoordinates = this.homogeneousDistortedPixelCoordinates(1:2);
         end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
-        
+
         % 4. add pixel noise
-        %> @brief Add pixel noise to this point
+        %> @brief Add pixel noise to this 2D point
         %>
         %> @param this Pointer to object
         %> @param noiseType String type of noise
-        %> @param variance Variance of gaussian distribution
-        %> @param pixelWindowInterval Half interval in pixel of window
-        function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+        %> @param mean Mean of gaussian distribution in x- and y-direction
+        %> @param variance Variance of gaussian distribution in x- and y-direction
+        function addPixelNoise(this, noiseType, mean, variance)
             % discrete uniformly distributed noise
             if strcmp(noiseType,'uniformly')
                 % genereate noise in x- and y-direction
-                noiseInPixelX = unidrnd(pixelWindowInterval) - pixelWindowInterval;
-                noiseInPixelY = unidrnd(pixelWindowInterval) - pixelWindowInterval;
-            % discrete binomial distributed noise
-            elseif strcmp(noiseType,'binomial')
+                noiseInPixelX = 2*variance(1)*rand() - variance(1);
+                noiseInPixelY = 2*variance(2)*rand() - variance(2);
+            % gaussian distributed noise
+            elseif strcmp(noiseType,'gaussian')
                 % generate noise in x- and y-direction
-                noiseInPixelX = this.generateDRV(variance, pixelWindowInterval);
-                noiseInPixelY = this.generateDRV(variance, pixelWindowInterval);
+                noiseInPixelX = normrnd(mean(1), variance(1));
+                noiseInPixelY = normrnd(mean(2), variance(2));
             end %if end
             
             % add noise to pixel coordinates
@@ -135,7 +124,7 @@ classdef PointIn2D < handle
             this.homogeneousNoisyPixelCoordinates(2) = this.homogeneousDistortedPixelCoordinates(2) + noiseInPixelY;
             this.homogeneousNoisyPixelCoordinates(3) = 1;
             this.homogeneousNoisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates';
-            % extract euclidean noisy pixel coordinates
+             % extract euclidean noisy pixel coordinates from homogeneous coordinates
             this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
@@ -166,23 +155,16 @@ classdef PointIn2D < handle
             noisyCoord = this.noisyCoordinates;
             homNoisyCoord = this.homogeneousNoisyCoordinates;
         end % getCoordinates() end
-        
-        
-        %> @brief Set the means for the noise of this point
-        %>
+
         %> @param this Pointer to object
         %> @param mean Vector of means, in camera frame
         function setMean(this, mean)
-            this.mean = mean;
+            this.pixelNoiseMean = mean;
         end % setMean() end
         
-
-        %> @brief Set the variances for the noise of this point
-        %>
-        %> @param this Pointer to object
         %> @param mean Vector of variances
         function setVariance(this, variance)
-            this.variance = variance;
+            this.pixelNoiseVariance = variance;
         end % setVariance() end
 
         %> @brief Helper function
