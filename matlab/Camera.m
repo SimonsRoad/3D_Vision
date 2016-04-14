@@ -53,7 +53,7 @@ classdef Camera < handle
        %> @param skew Skew paramter of camera
        %>
        %> @retval obj Object of type Camera
-       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, kappa, p, xResolution, yResolution)
+       function obj = Camera(radius, azimutalAngle, polarAngle, f, x0, y0, kx, ky, skew, xResolution, yResolution)
            % Properties
            obj.f = f;
            obj.x0 = x0;
@@ -93,15 +93,11 @@ classdef Camera < handle
            % Calculate Transformation Matrix from image to pixel coordinates
            obj.calculateUVtoPixelMatrix();
            % Calculate focallength Matrix [f 0 0; 0 f 0; 0 0 1]
-           obj.calculateFocallengthMatrix
+           obj.calculateFocallengthMatrix();
            
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
            
-           % Set distortion parameters
-           obj.kappa = kappa;   % radial distortion
-           obj.p = p;           % tangential distortion
-
        end % Camera() end
        
        
@@ -168,73 +164,63 @@ classdef Camera < handle
        %> @param this Pointer to Camera object
        function projectFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-
-           this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.K, this.imagetoPixelCoordinatesTrafo, this.focalLenghtMatrix, this.truePose, this.kappa, this.p);
-
+            this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.focalLenghtMatrix);
        end % projectFrom3DTo2D() end
        
+       % 1. Add distortion
+       %> @brief Add distortion to u,v coordinates
+       %>
+       %> @param this Pointer to object
+       %> @param kappa Radial distortion parameters 3-dimensional vector
+       %> @param p Tangential distortion parameters 2-dimensional vector
+       function addDistortion(this, kappa, p)
+           this.pointCloud2D.addDistortion(kappa, p);
+       end % addDistortion() end
+       
+       % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
+       %> @brief Calculate the homogeneous distorted points in uv coordinates
+       %>
+       %> @param this Pointer to object (this.imagetoPixelCoordinatesTrafo) is needed
+       function calculateHomoegenousDistortedPixelPoints(this)
+           this.pointCloud2D.calculateHomoegenousDistortedPixelPoints(this.imagetoPixelCoordinatesTrafo);
+       end % calculateHomoegenousDistortedPixelPoints() end
+       
+       % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
+       %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
+       %>
+       %> @param this Pointer to object
+       function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
+          this.pointCloud2D.setDistortedPixelCoordinatesFromHomogeneousCoordinates(); 
+       end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
+       
+       % 4. add pixel noise
        %> @brief
        %>
        %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
        %> @param this Pointer to Camera object
-       %> @param variance Variance of gaussian distribution
-       %> @param pixelWindowInterval Half interval in pixel of window
-       function addPixelNoise(this, noiseType, variance, pixelWindowInterval)
+       %> @param mean Mean of gaussian distribution in x- and y-direction
+       %> @param variance Variance of gaussian distribution in x- and y-direction
+       function addPixelNoise(this, noiseType, mean, variance)
            if strcmp(noiseType,'noNoise')
                return
-           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'binomial'))
-               this.pointCloud2D.addPixelNoise(noiseType, variance, pixelWindowInterval);
+           elseif (strcmp(noiseType,'uniformly') || strcmp(noiseType,'gaussian'))
+               this.pointCloud2D.addPixelNoise(noiseType, mean, variance);
            else
                error('addPixelNoise() must be called with the options: noNoise, uniformly, gaussian');
            end
        end % addPixelNoise() end
        
-       
-       %> @brief Plot projected and noisy 2D points
+       % 5. back projection to image coordinates
+       %> @brief transform from xy (pixel) to uv (image) coordinates
        %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plot2DPoints(this)
-           % Plot 2D pixel points
-           this.pointCloud2D.plotPixelPoints();
-%            xlim([-this.x0, this.xResolution - this.x0])
-%            ylim([-this.y0, this.yResolution - this.y0])
-           title('3D to 2D projection')
-           xlabel('camera x-axis')
-           ylabel('camera y-axis')
-           hold on
-           
-           % Plot 2D noisy pixel points
-           this.pointCloud2D.plotNoisyPixelPoints();
-           hold off
-       end % plot2DPoints() end
+       %> @param this Pointer to Camera object
+       function transformFromPixelToImage(this)
+           this.pointCloud2D.transformFromPixelToImage(this.imagetoPixelCoordinatesTrafo); 
+       end % transformFromPixelToImage() end
        
-       %> @brief Plot distorted 2D points in image coordinates (u,v)
-       %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plotDistortedImage2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot distortoted 2D points
-           this.pointCloud2D.plotDistortedImagePoints(figureHandle);
-           
-       end % plot2DPoints() end
-       
-       %> @brief Plot distorted 2D points in pixel coordinates
-       %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plotDistortedPixel2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot distortoted 2D points
-           this.pointCloud2D.plotDistortedPixelPoints(figureHandle);
-           
-       end % plot2DPoints() end
-       
+       % 6. undistortion
+       %%%%%% has to be done
+      
        
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
@@ -243,14 +229,16 @@ classdef Camera < handle
            this.imagetoPixelCoordinatesTrafo = [this.kx, this.skew, this.x0;
                0, this.ky, this.y0;
                0, 0, 1];
-       end
+       end % calculateUVtoPixelMatrix() end
+       
        
        %> @brief Calculates the focallength matrix [f 0 0; 0 f 0; 0 0 1]
        %> 
        %> @param this Pointer to object
        function calculateFocallengthMatrix(this)
            this.focalLenghtMatrix = [this.f, 0, 0; 0, this.f, 0; 0, 0, 1];
-       end
+       end % calculateFocallengthMatrix() end
+       
        
        %> @brief Calculates the camera calibration matrix
        %>
@@ -260,13 +248,15 @@ classdef Camera < handle
            this.K = this.imagetoPixelCoordinatesTrafo * this.focalLenghtMatrix;
        end % calculateCalibrationMatrix() end
        
+       
        %> @brief Estimate the camera pose with a pnp algorithm
        function estimatePose(this)
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
            t(3) = -t(3);
            this.estimatedPose(1:3,4) = t;
-       end
+       end % estimatePose() end
+       
        
        %> @brief Calculate the error in the pose estimation
        %>
@@ -288,6 +278,7 @@ classdef Camera < handle
            errorInTranslation = norm(trueTranslation-estimatedTranslation)/norm(trueTranslation)*100;
        end
        
+       
        %> @brief Returns camera calibration matrix
        %> 
        %> @param this Pointer to Camera object
@@ -297,12 +288,14 @@ classdef Camera < handle
            K = this.K;
        end % getCalibrationMatrix() end
        
+       
        %> @brief Sets the PnP Algorithm
        %>
        %> @param algorithm Name of the PnP Algorithm
        function setPnPAlgorithm(this,algorithm_)
            this.pnpAlgorithm = PnPAlgorithm(this.pointCloud3D, this.pointCloud2D, algorithm_);
        end
+       
        
        %> @brief getPose() returns true and estimated pose of a Camera object
        %>
@@ -336,7 +329,5 @@ classdef Camera < handle
            end
 
        end
-       
-       
    end % methods end
 end % classdef end

@@ -36,11 +36,14 @@ anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
 anisotropicGaussianVariance = scale*[0.01; 0.01; 0.1];
 
 %% Distortion parameters
-kappa = [0;0;0];                % radial distortion
+kappa = [1;0;0];                % radial distortion
 p = [0;0];                      % tangential distortion
 
-%% Save Parameter File
+%% Pixel noise parameters
+pixelNoiseMean = [0,0];
+pixelNoiseVariance = [1,1];
 
+%% Save Parameter File
 save('parameters.mat')
 
 clear all

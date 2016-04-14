@@ -44,9 +44,9 @@ classdef PnPAlgorithm < handle
                 obj.matrixOfHomogeneousNoisy2DPoints = zeros(3,obj.numberOfPoints);
                 for i = 1:obj.numberOfPoints
                     obj.matrixOfNoisy3DPoints(:,i) = -pointCloud3D_.pointsIn3D(i).noisyCoordinatesInWorldFrame;
-                    obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame;
+                    obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).backProjectionFromPixelToImageCoordinates;
                     obj.matrixOfHomogeneousNoisy3DPoints(:,i) = -pointCloud3D_.pointsIn3D(i).homogeneousNoisyCoordinatesInWorldFrame;
-                    obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousDistortedNoisyCoordinatesInCameraFrame;
+                    obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousBackProjectionFromPixelToImageCoordinates;
                 end
 %                 % The 3D coordinates have to be centered
 %                 obj.meanOfNoisy3DPoints = mean(obj.matrixOfNoisy3DPoints,2);

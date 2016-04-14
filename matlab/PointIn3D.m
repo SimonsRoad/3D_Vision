@@ -73,6 +73,7 @@ classdef PointIn3D < handle
             
             % Transform true coordinates to camera frame
             this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousTrueCoordinatesInWorldFrame;
+            this.trueCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame(1:3);
             
             % Initialize noisy coordinates in camera frame
             this.homogeneousNoisyCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame;
