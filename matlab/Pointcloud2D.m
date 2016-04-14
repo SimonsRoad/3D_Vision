@@ -120,7 +120,8 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','blue')
+            plot(X,Y,'o','Color','blue')
+            alpha(.5)
         end % plotProjectedPoints() end
         
         
@@ -139,7 +140,8 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','green','Markersize',10)
+            plot(X,Y,'+','Color','green')
+            alpha(.5)
         end % plotDistortedImagePoints() end
         
         
@@ -158,7 +160,8 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','green')
+            plot(X,Y,'+','Color','green')
+            alpha(.5)
         end % plotDistortedPixelPoints() end
         
         
@@ -178,7 +181,8 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','magenta')
+            plot(X,Y,'x','Color','magenta')
+            alpha(.5)
         end % plotNoisyPoints() end
         
         
@@ -198,7 +202,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','magenta')
+            plot(X,Y,'x','Color','magenta')
         end % plotBackProjectedImagePoints() end
     end % methods end
 end % classdef end

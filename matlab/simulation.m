@@ -84,10 +84,11 @@ ylabel('')
 axis equal
 hold on
 legend('true 3D projection')
-pause
+% pause
 camera.pointCloud2D.plotDistortedImagePoints();
-legend('true 3D projection','true 3D distorted projection')
-pause
+camera.pointCloud2D.plotBackProjectedImagePoints();
+legend('true 3D projection','true 3D distorted projection','back projection from pixel')
+% pause
 hold off
 
 % Plot pixel plane
@@ -99,21 +100,8 @@ ylabel('')
 axis equal
 hold on
 legend('distorted image points to pixel')
-pause
+% pause
 camera.pointCloud2D.plotNoisyPixelPoints();
 legend('distorted image points to pixel','added pixel noise')
-pause
-hold off
-
-% Plot pixel back projection to image plane
-figure(fig2)
-camera.pointCloud2D.plotImagePoints();
-title('Image Plane')
-xlabel('')
-ylabel('')
-axis equal
-hold on
-camera.pointCloud2D.plotDistortedImagePoints();
-camera.pointCloud2D.plotBackProjectedImagePoints();
-legend('true 3D projection','true 3D distorted projection','back projection from pixel')
+% pause
 hold off
