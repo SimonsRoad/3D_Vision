@@ -124,21 +124,14 @@ classdef Camera < handle
            % Plot the true pose
            figure(figureHandle)
            trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
-           axis equal
+           % Plot the estimated pose
+           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
            
-           % Camera Center
-           hold on
+           % Camera Centers
            truePosition = trueRotation' * trueTranslation;
            plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
-           
-           
-           % Plot the estimated pose
-           hold on
-           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
-           hold on
            estimatedPosition = estimatedRotation' * estimatedTranslation;
            plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
-           legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
            
            % Camera frame of true pose
            P1 = truePosition;
@@ -321,6 +314,28 @@ classdef Camera < handle
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
        end % getPose() end
+       
+       function plotConfidenceIntervals(this)
+
+           for i = 1:this.pointCloud3D.numberOfPoints
+               [x, y, z] = ellipsoid(this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(1),...
+                   this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(2),...
+                   this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(3),...
+                                       2*this.pointCloud3D.pointsIn3D(i).anisotropicGaussianVariance(1),...
+                                       2*this.pointCloud3D.pointsIn3D(i).anisotropicGaussianVariance(2),...
+                                       2*this.pointCloud3D.pointsIn3D(i).anisotropicGaussianVariance(3));
+               r = vrrotmat2vec(this.truePose(:,1:3)');
+               direction = r(1:3);
+               theta = r(4)*180/pi;
+               origin = [this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(1) this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(2) this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(3)];
+               ellipse = surf(x,y,z,'EdgeColor','none','FaceColor','red');
+               alpha(0.1)
+               rotate(ellipse,direction,theta,origin);
+                drawnow
+               hold on
+           end
+
+       end
        
        
    end % methods end

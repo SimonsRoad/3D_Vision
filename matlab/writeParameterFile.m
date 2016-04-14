@@ -4,11 +4,11 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 500;
+numberOfPoints = 20;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
-cameraRadius = 1.5;
+cameraRadius = 5;
 polarAngleMax = pi/3;
 
 % Scale
@@ -26,7 +26,7 @@ kx = 1200;
 ky = 1200;
 
 %% PnP Parameters
-pnpAlgorithm = 'DLT'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
+pnpAlgorithm = 'EPNP'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
 
 %% PointIn3D
 % Noise Models

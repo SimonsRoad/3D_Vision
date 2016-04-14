@@ -31,10 +31,12 @@ hold on
 
 % Add noise to 3d points
 [trueP, ~] = camera.getPose();
-camera.pointCloud3D.addNoiseToAllPoints(trueP)
+camera.pointCloud3D.addNoiseToAllPoints(trueP);
+camera.pointCloud3D.computeCameraFrameCoordinates(trueP);
 
 % Plot the point cloud of the noisy points
 camera.pointCloud3D.plotNoisyPointcloud('true')
+camera.plotConfidenceIntervals();
 
 % Project 3d to 2d points
 camera.projectFrom3DTo2D();
@@ -54,6 +56,8 @@ camera.estimatePose();
 
 % Plot camera true pose and estimated pose of the camera
 camera.visualizeCamera(1)
+%legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
+
 
 [errorInTranslation, errorInOrientation] = camera.computePoseError();
 disp(['Translation Error: ' num2str(errorInTranslation)])
