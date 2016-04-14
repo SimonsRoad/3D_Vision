@@ -57,8 +57,8 @@ camera.estimatePose();
 
 % compute error
 [errorInTranslation, errorInOrientation] = camera.computePoseError();
-disp(['Translation Error: ' num2str(errorInTranslation)])
-disp(['Orientation Error: ' num2str(errorInOrientation)])
+disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
+disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
 %% Plots
 % Plot the point cloud of the true points
