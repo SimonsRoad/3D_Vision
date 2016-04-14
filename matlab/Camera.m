@@ -156,7 +156,7 @@ classdef Camera < handle
        %>
        %> @param this Pointer to Camera object
        function transformFromPixelToImage(this)
-           this.pointCloud2D.transformFromPixelToImage(this.K); 
+           this.pointCloud2D.transformFromPixelToImage(this.imagetoPixelCoordinatesTrafo); 
        end % transformFromPixelToImage() end
        
        % 6. undistortion

@@ -80,7 +80,7 @@ classdef PointIn2D < handle
         %> @param this Pointer to PointIn2D object 
         %> @param imagetoPixelCoordinatesTrafo [camera.kx, camera.skew, camera.x0; 0, camera.ky, camera.y0; 0, 0, 1];
         function calculateHomoegeneousDistortedPixelCoordinates(this, imageToPixelMatrix)
-            pixelCoordinatesDistorted = [this.distortedCoordinatesInCameraFrame(1); this.distortedCoordinatesInCameraFrame(2); 1]; %transformFromEuclideanToHomogeneous(this.distortedNoisyCoordinatesInCameraFrame);
+            pixelCoordinatesDistorted = [this.distortedCoordinatesInCameraFrame(1); this.distortedNoisyCoordinatesInCameraFrame(2); 1]; %transformFromEuclideanToHomogeneous(this.distortedNoisyCoordinatesInCameraFrame);
             this.homogeneousDistortedPixelCoordinates = imageToPixelMatrix * pixelCoordinatesDistorted;
         end % calculateHomoegeneousDistortedPixelCoordinates() end 
 
@@ -132,8 +132,8 @@ classdef PointIn2D < handle
         %> 
         %> @param this Pointer to object
         %> @param calibrationMatrix calibration matrix of camera
-        function transformFromPixelToImage(this, imagetoPixelCoordinatesTrafo)
-           this.homogeneousBackProjectionFromPixelToImageCoordinates = imagetoPixelCoordinatesTrafo \ this.homogeneousNoisyPixelCoordinates;
+        function transformFromPixelToImage(this, calibrationMatrix)
+           this.homogeneousBackProjectionFromPixelToImageCoordinates = calibrationMatrix \ this.homogeneousNoisyPixelCoordinates;
            this.backProjectionFromPixelToImageCoordinates = this.homogeneousBackProjectionFromPixelToImageCoordinates(1:2);
         end % transformFromPixelToImage() end
         

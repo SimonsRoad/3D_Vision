@@ -93,10 +93,10 @@ classdef Pointcloud2D < handle
         %>
         %> @param this Pointer to Pointcloud2D object
         %> @param calibrationMatrix calibration matrix
-        function transformFromPixelToImage(this, calibrationMatrix)
+        function transformFromPixelToImage(this, imagetoPixelCoordinatesTrafo)
             % for every 2D point
             for i = 1:this.numberOfPoints
-                this.pointsIn2D(i).transformFromPixelToImage(calibrationMatrix);
+                this.pointsIn2D(i).transformFromPixelToImage(imagetoPixelCoordinatesTrafo);
             end
         end % transformFromPixelToImage() end
         
@@ -158,8 +158,8 @@ classdef Pointcloud2D < handle
             
             % Loop over all points
             for i = 1:this.numberOfPoints
-                X(i) = this.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame(1);
-                Y(i) = this.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame(2);
+                X(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(1);
+                Y(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(2);
             end % for loop end
             
             % plot projected 2D points

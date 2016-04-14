@@ -45,10 +45,10 @@ classdef PnPAlgorithm < handle
                     obj.matrixOfNoisy3DPoints(:,i) = pointCloud3D_.pointsIn3D(i).noisyCoordinatesInWorldFrame;
                     obj.matrixOfNoisy3DPoints(1,i) = -obj.matrixOfNoisy3DPoints(1,i);
                     obj.matrixOfNoisy3DPoints(2,i) = -obj.matrixOfNoisy3DPoints(2,i);
-                    obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).distortedNoisyCoordinatesInCameraFrame;
+                    obj.matrixOfNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).backProjectionFromPixelToImageCoordinates;
                     %obj.matrixOfNoisy2DPoints(1,i) = -obj.matrixOfNoisy2DPoints(1,i);
                     obj.matrixOfHomogeneousNoisy3DPoints(:,i) = pointCloud3D_.pointsIn3D(i).homogeneousNoisyCoordinatesInWorldFrame;
-                    obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousDistortedNoisyCoordinatesInCameraFrame;
+                    obj.matrixOfHomogeneousNoisy2DPoints(:,i) = pointCloud2D_.pointsIn2D(i).homogeneousBackProjectionFromPixelToImageCoordinates;
                 end
             end
         end

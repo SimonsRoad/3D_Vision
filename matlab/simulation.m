@@ -38,7 +38,7 @@ camera.pointCloud3D.addNoiseToAllPoints(trueP);
 % Plot the point cloud of the noisy points
 
 camera.pointCloud3D.plotNoisyPointcloud('false');
-hold off
+%hold off
 
 
 %% Project true 3D points to 2D points
@@ -54,10 +54,10 @@ camera.calculateHomoegenousDistortedPixelPoints();
 % calculate euclidean pixels
 camera.setDistortedPixelCoordinatesFromHomogeneousCoordinates();
 
-%% 
+ 
 
 % add pixel noise to 2d projection
-camera.addPixelNoise('gaussian', [0,0], [1,1]);
+camera.addPixelNoise('gaussian', [0,0], [0,0]);
 
 % back transformation from pixel to image coordinates
 camera.transformFromPixelToImage();
@@ -66,7 +66,7 @@ camera.transformFromPixelToImage();
 % Plot 2D points
 %figure(2)
 %camera.plot2DPoints();
-
+%%
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);
 camera.estimatePose();
