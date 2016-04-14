@@ -161,50 +161,6 @@ classdef Camera < handle
        
        % 6. undistortion
        %%%%%% has to be done
-       
-       %> @brief Plot projected and noisy 2D points
-       %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plot2DPoints(this)
-           % Plot 2D pixel points
-           this.pointCloud2D.plotPixelPoints();
-%            xlim([-this.x0, this.xResolution - this.x0])
-%            ylim([-this.y0, this.yResolution - this.y0])
-           title('3D to 2D projection')
-           xlabel('camera x-axis')
-           ylabel('camera y-axis')
-           hold on
-           
-           % Plot 2D noisy pixel points
-           this.pointCloud2D.plotNoisyPixelPoints();
-           hold off
-       end % plot2DPoints() end
-       
-       %> @brief Plot distorted 2D points in image coordinates (u,v)
-       %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plotDistortedImage2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot distortoted 2D points
-           this.pointCloud2D.plotDistortedImagePoints(figureHandle);         
-       end % plot2DPoints() end
-       
-       %> @brief Plot distorted 2D points in pixel coordinates
-       %>
-       %> @param this Pointer to object
-       %> @param figureHandle Handle to figure number
-       function plotDistortedPixel2DPoints(this, figureHandle)
-           % Open figure
-           figure(figureHandle)
-           
-           % Plot distortoted 2D points
-           this.pointCloud2D.plotDistortedPixelPoints(figureHandle);
-           
-       end % plot2DPoints() end
       
        
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
@@ -216,12 +172,14 @@ classdef Camera < handle
                0, 0, 1];
        end % calculateUVtoPixelMatrix() end
        
+       
        %> @brief Calculates the focallength matrix [f 0 0; 0 f 0; 0 0 1]
        %> 
        %> @param this Pointer to object
        function calculateFocallengthMatrix(this)
            this.focalLenghtMatrix = [this.f, 0, 0; 0, this.f, 0; 0, 0, 1];
        end % calculateFocallengthMatrix() end
+       
        
        %> @brief Calculates the camera calibration matrix
        %>
@@ -231,12 +189,14 @@ classdef Camera < handle
            this.K = this.imagetoPixelCoordinatesTrafo * this.focalLenghtMatrix;
        end % calculateCalibrationMatrix() end
        
+       
        %> @brief Estimate the camera pose with a pnp algorithm
        function estimatePose(this)
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
            this.estimatedPose(1:3,4) = t;
        end % estimatePose() end
+       
        
        %> @brief Calculate the error in the pose estimation
        %>
@@ -258,6 +218,7 @@ classdef Camera < handle
            errorInTranslation = norm(trueTranslation-estimatedTranslation)/norm(trueTranslation)*100;
        end
        
+       
        %> @brief Returns camera calibration matrix
        %> 
        %> @param this Pointer to Camera object
@@ -267,12 +228,14 @@ classdef Camera < handle
            K = this.K;
        end % getCalibrationMatrix() end
        
+       
        %> @brief Sets the PnP Algorithm
        %>
        %> @param algorithm Name of the PnP Algorithm
        function setPnPAlgorithm(this,algorithm_)
            this.pnpAlgorithm = PnPAlgorithm(this.pointCloud3D, this.pointCloud2D, algorithm_);
        end
+       
        
        %> @brief getPose() returns true and estimated pose of a Camera object
        %>
@@ -284,6 +247,7 @@ classdef Camera < handle
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
        end % getPose() end
+       
        
        %> @brief Visualizes the camera
        %>
@@ -318,7 +282,5 @@ classdef Camera < handle
            plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
            legend('true Points','noisy Points','true Camera','estimated Camera', 'Location', 'Best');
        end % visualizeCamera() end
-       
-       
    end % methods end
 end % classdef end

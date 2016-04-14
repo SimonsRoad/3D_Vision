@@ -18,11 +18,6 @@ classdef Pointcloud2D < handle
         %> @param cameraTruePose Ground truth pose of a camera
         %>
         %> @retval obj array with points in 2D
-
-
-        %function obj = Pointcloud2D(pointCloud3D, calibrationMatrix, focalLengthMatrix, cameraTruePose)
-
-
         function obj = Pointcloud2D(pointCloud3D, focalLengthMatrix)
 
             % Get number of points in pointCloud3D
@@ -38,6 +33,7 @@ classdef Pointcloud2D < handle
             end % for loop end
         end % Constructor end
         
+        
         % 1. add distortion
         %> @brief
         %>
@@ -51,6 +47,7 @@ classdef Pointcloud2D < handle
            end
         end % addDistortion() end
         
+        
         % 2. calculate homogeneous distorted pixel points
         %> @brief
         %>
@@ -63,6 +60,7 @@ classdef Pointcloud2D < handle
            end
         end % calculateHomoegenousDistortedPixelPoints() end
         
+        
         % 3. calculate euclidean distorted pixel points from homoegenous distorted pixel points
         %> @brief
         %>
@@ -73,6 +71,7 @@ classdef Pointcloud2D < handle
                this.pointsIn2D(i).setDistortedPixelCoordinatesFromHomogeneousCoordinates();
            end
         end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
+        
         
         % 4. add pixel noise
         %> @brief Adds pixel noise to pixel representation of the 2d projected point
@@ -88,6 +87,7 @@ classdef Pointcloud2D < handle
             end
         end % addPixelNoise() end
         
+        
         % 5. back projection
         %> @brief
         %>
@@ -100,6 +100,7 @@ classdef Pointcloud2D < handle
             end
         end % transformFromPixelToImage() end
         
+        
         % 6. undistortion
        %%%%%% has to be done
         
@@ -107,7 +108,7 @@ classdef Pointcloud2D < handle
         %>
         %> @param this Pointer to object
         %> @param figureHandle Handle to figure
-        function plotPixelPoints(this)
+        function plotImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
             Y = zeros(1,this.numberOfPoints);
@@ -119,10 +120,46 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','red')
-            xlim([-100 100])
-            ylim([-100 100])
+            plot(X,Y,'.','Color','blue')
         end % plotProjectedPoints() end
+        
+        
+        %> @brief Plots the distorted 2D points in u,v coordinates
+        %>
+        %> @param this Pointer to object
+        function plotDistortedImagePoints(this)
+            % Declare X and Y vectors
+            X = zeros(1,this.numberOfPoints);
+            Y = zeros(1,this.numberOfPoints);
+            
+            % Loop over all points
+            for i = 1:this.numberOfPoints
+                X(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(1);
+                Y(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(2);
+            end % for loop end
+            
+            % plot projected 2D points
+            plot(X,Y,'.','Color','green','Markersize',10)
+        end % plotDistortedImagePoints() end
+        
+        
+        %> @brief Plots the distorted 2D points in x,y coordinates
+        %>
+        %> @param this Pointer to object
+        function plotDistortedPixelPoints(this)
+            % Declare X and Y vectors
+            X = zeros(1,this.numberOfPoints);
+            Y = zeros(1,this.numberOfPoints);
+            
+            % Loop over all points
+            for i = 1:this.numberOfPoints
+                X(i) = this.pointsIn2D(i).distortedPixelCoordinates(1);
+                Y(i) = this.pointsIn2D(i).distortedPixelCoordinates(2);
+            end % for loop end
+            
+            % plot projected 2D points
+            plot(X,Y,'.','Color','green')
+        end % plotDistortedPixelPoints() end
         
         
         %> @brief Plots the noisy 2D points
@@ -141,54 +178,27 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','green')
-            
+            plot(X,Y,'.','Color','magenta')
         end % plotNoisyPoints() end
         
         
-        
-        %> @brief Plots the distorted 2D points in u,v coordinates
+        %> @brief Plots the noisy 2D points
         %>
         %> @param this Pointer to object
         %> @param figureHandle Handle to figure
-        function plotDistortedImagePoints(this)
+        function plotBackProjectedImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
             Y = zeros(1,this.numberOfPoints);
             
             % Loop over all points
             for i = 1:this.numberOfPoints
-                X(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(1);
-                Y(i) = this.pointsIn2D(i).distortedCoordinatesInCameraFrame(2);
+                X(i) = this.pointsIn2D(i).backProjectionFromPixelToImageCoordinates(1);
+                Y(i) = this.pointsIn2D(i).backProjectionFromPixelToImageCoordinates(2);
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'.','Color','red')
-            xlim([-100 100])
-            ylim([-100 100])
-        end % plotProjectedPoints() end
-        
-        
-        %> @brief Plots the distorted 2D points in x,y coordinates
-        %>
-        %> @param this Pointer to object
-        %> @param figureHandle Handle to figure
-        function plotDistortedPixelPoints(this, figureHandle)
-            % Declare X and Y vectors
-            X = zeros(1,this.numberOfPoints);
-            Y = zeros(1,this.numberOfPoints);
-            
-            % Loop over all points
-            for i = 1:this.numberOfPoints
-                X(i) = this.pointsIn2D(i).distortedPixelCoordinates(1);
-                Y(i) = this.pointsIn2D(i).distortedPixelCoordinates(2);
-            end % for loop end
-            
-            % plot projected 2D points
-            figure(figureHandle)
-            plot(X,Y,'.','Color','red')
-            xlim([-100 100])
-            ylim([-100 100])
-        end % plotProjectedPoints() end
+            plot(X,Y,'.','Color','magenta')
+        end % plotBackProjectedImagePoints() end
     end % methods end
 end % classdef end
