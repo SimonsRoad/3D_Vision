@@ -13,21 +13,33 @@ rng('shuffle','twister')
 pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
     anisotropicGaussianMean,anisotropicGaussianVariance);
 
+%% Generate 3D lines
+% Generate 3D Linecloud
+linecloud3D = Linecloud3D(numberOfLines, shape, scale, linecloudMean, linecloudVariance);
+
+%% Initialize a Camera object
 % Initialize camera with random azimutal and polar angle
 azimutalAngle = 2*pi*rand();
 polarAngle = polarAngleMax*rand();
 
-%% Initialize a Camera object
 % Construct Camera object
 camera = Camera(cameraRadius, azimutalAngle, polarAngle, focalLength, x0, y0, kx, ky, skew, xResolution, yResolution);
+
 % Copy pointcloud3D to pointCloud3D of camera
 camera.pointCloud3D = pointcloud3D;
+
+% Copy linecloud3D to lineCloud3D of camera
+camera.lineCloud3D = linecloud3D;
 
 % Add noise to 3d points
 [trueP, ~] = camera.getPose();
 camera.pointCloud3D.addNoiseToAllPoints(trueP);
 
 camera.pointCloud3D.computeCameraFrameCoordinates(trueP);
+
+%% Project true 3D lines to 2D lines
+% Project 3D to 2D pixel lines
+camera.projectLinesFrom3DToPixel();
 
 %% Project true 3D points to 2D points
 % Project 3d to 2d points

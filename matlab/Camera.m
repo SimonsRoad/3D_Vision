@@ -12,6 +12,10 @@ classdef Camera < handle
        truePose                     %> @param truePose True pose of camera in world coordinates
        estimatedPose                %> @param estimatedPose Estimated pose of camera in world coordinates
        
+       % Camera projection matrices
+       trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
+       trueLineProjectionMatrix     %> @param trueLineProjectionMatrix Pluecker line representation of planes of true pose of the camera
+       
        % Camera parameters
        f                            %> @param f Focal length
        kx                           %> @param kx Pixel per unit length in x-direction
@@ -34,6 +38,10 @@ classdef Camera < handle
        % Point clouds
        pointCloud3D@Pointcloud3D    %> @param pointCloud3D Member of type Pointcloud3D
        pointCloud2D@Pointcloud2D    %> @param pointCloud2D Member of type Pointcloud2D
+       
+       % Line clouds
+       lineCloud3D@Linecloud3D      %> @param lineCloud3D Member of type Linecloud3D
+       lineCloud2D@Linecloud2D      %> @param lineCloud2D Member of type Linecloud2D
        
        % PnP Algorithm
        pnpAlgorithm@PnPAlgorithm;   %> @param pnpAlgorithm Perspective N Point algorithm
@@ -98,6 +106,18 @@ classdef Camera < handle
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
            
+           % Calculate camera projection matrix
+           obj.trueCameraProjectionMatrix = obj.K*obj.truePose;
+           
+           % Calculate line projection matrix
+           P_1 = obj.trueCameraProjectionMatrix(1,:)';
+           P_2 = obj.trueCameraProjectionMatrix(2,:)';
+           P_3 = obj.trueCameraProjectionMatrix(3,:)';
+           
+           obj.trueLineProjectionMatrix = zeros(3,6);
+           obj.trueLineProjectionMatrix(1,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_2, P_3) ))';
+           obj.trueLineProjectionMatrix(2,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_3, P_1) ))';
+           obj.trueLineProjectionMatrix(3,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_1, P_2) ))';
        end % Camera() end
        
        
@@ -225,7 +245,15 @@ classdef Camera < handle
        
        % 6. undistortion
        %%%%%% has to be done
-      
+        
+       
+       %> @brief Projects 3D lines into the pixel plane
+       %>
+       %> @param this Pointer to this object
+       function projectLinesFrom3DToPixel(this)
+           this.lineCloud2D = Linecloud2D(this.lineCloud3D, this.trueLineProjectionMatrix);
+       end
+       
        
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
@@ -336,3 +364,40 @@ classdef Camera < handle
        end
    end % methods end
 end % classdef end
+
+
+%% Helper functions
+
+%> @brief
+%>
+%> @param plueckerMatrix
+%>
+%> @retval plueckerLine
+function plueckerLine = plueckerMatrixToPlueckerLine(plueckerMatrix)
+    % Check if pluecker matrix has size 4x4
+    if size(plueckerMatrix) ~= [4 4]
+        error('Pluecker matrix has not size 4x4')
+        return
+    else
+        % transform to pluecker line representation
+        l_12 = plueckerMatrix(1,2);
+        l_13 = plueckerMatrix(1,3);
+        l_14 = plueckerMatrix(1,4);
+        l_23 = plueckerMatrix(2,3);
+        l_24 = plueckerMatrix(2,4);
+        l_34 = plueckerMatrix(3,4);
+    
+        plueckerLine = [l_12; l_13; l_14; l_23; l_24; l_34];
+    end
+end
+
+
+%> @brief
+%>
+%> @param pointOne First point on a 3D line
+%> @param pointTwo Second point on a 3D line
+%>
+%> @retval plueckerLineMatrix Plücker Matrix representation of a 3D line
+function plueckerLineMatrix = hatOperator(pointOne, pointTwo)
+    plueckerLineMatrix = pointOne*pointTwo' - pointTwo*pointOne';
+end
