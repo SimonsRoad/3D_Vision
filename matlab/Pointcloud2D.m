@@ -116,8 +116,8 @@ classdef Pointcloud2D < handle
            end
            x = A\b;
            
-           kappa_ = [x(1); x(2); x(3)]
-           p_ = [x(4); x(5)]
+           kappa_ = [x(1); x(2); x(3)];
+           p_ = [x(4); x(5)];
            
            for i = 1:this.numberOfPoints
                this.pointsIn2D(i).undistortion(kappa_,p_);

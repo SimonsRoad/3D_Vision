@@ -108,26 +108,18 @@ classdef Camera < handle
        %>
        %> @retval trueCam Handle to true camera pose plot
        %> @retval estimatedCam Handle to estimated camera pose plot
-       function [trueCam, estimatedCam] = visualizeCamera(this, figureHandle)
+       function trueCam = visualizeTrueCamera(this, figureHandle)
            % Get true translation and rotation from truePose
            trueTranslation = this.truePose(1:3,4);
            trueRotation = this.truePose(1:3,1:3);
            
-           % Get estimated translation and rotation from estimatedPose
-           estimatedTranslation = this.estimatedPose(1:3,4);
-           estimatedRotation = this.estimatedPose(1:3,1:3);
-           
            % Plot the true pose
            figure(figureHandle)
            trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
-           % Plot the estimated pose
-           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
            
            % Camera Centers
            truePosition = trueRotation' * trueTranslation;
            plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
-           estimatedPosition = estimatedRotation' * estimatedTranslation;
-           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
            
            % Camera frame of true pose
            P1 = truePosition;
@@ -140,6 +132,21 @@ classdef Camera < handle
            P2 = truePosition+trueRotation'*[0; 0; 1];
            P = [P1'; P2'];
            line(P(:,1), P(:,2), P(:,3))
+       end % visualizeCamera() end
+       
+       
+       function estimatedCam = visualizeEstimatedCamera(this, figureHandle)
+           % Get estimated translation and rotation from estimatedPose
+           estimatedTranslation = this.estimatedPose(1:3,4);
+           estimatedRotation = this.estimatedPose(1:3,1:3);
+           
+           % Plot the estimated pose
+           figure(figureHandle)
+           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
+           
+           % Camera center
+           estimatedPosition = estimatedRotation' * estimatedTranslation;
+           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
            
            % Camera frame of estimated pose
            P1 = estimatedPosition;
@@ -154,9 +161,7 @@ classdef Camera < handle
            P2 = estimatedPosition+estimatedRotation'*[0; 0; 1];
            P = [P1'; P2'];
            line(P(:,1), P(:,2), P(:,3), 'color', 'red')
-           
-           
-       end % visualizeCamera() end
+       end
        
        
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D

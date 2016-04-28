@@ -6,9 +6,9 @@ clear all
 scale = 1;
 numberOfPoints = 100;
 
-shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
+shape = 'planar'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
-cameraRadius = 5;
+cameraRadius = 2;
 polarAngleMax = pi/3;
 
 % Scale
@@ -19,8 +19,8 @@ cameraRadius = scale*cameraRadius;
 focalLength = 0.5;
 xResolution = 640; % pixel resolution in x-direction of camera frame
 yResolution = 480; % pixel resolution in y-direction of camera frame
-x0 = 0; % principle point in the middle of sensor
-y0 = 0; % principle point in the middle of sensor
+x0 = xResolution/2; % principle point in the middle of sensor
+y0 = yResolution/2; % principle point in the middle of sensor
 skew = 0;
 kx = 1200;
 ky = 1200;
