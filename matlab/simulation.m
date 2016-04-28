@@ -49,6 +49,8 @@ camera.addPixelNoise('gaussian', pixelNoiseMean, pixelNoiseVariance);
 % back transformation from pixel to image coordinates
 camera.transformFromPixelToImage();
 
+% undistortion in image coordinates
+camera.undistortion();
 
 %% Pose Estimation
 % estimate camera pose with PnP algorithm
@@ -60,8 +62,8 @@ camera.estimatePose();
 disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
 disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
-%% Plots
-% Plot the point cloud of the true points
+% Plots
+Plot the point cloud of the true points
 fig1 = figure(1)
 camera.pointCloud3D.plotTruePointcloud();
 axis vis3d
@@ -103,5 +105,18 @@ legend('distorted image points to pixel')
 % pause
 camera.pointCloud2D.plotNoisyPixelPoints();
 legend('distorted image points to pixel','added pixel noise')
+% pause
+hold off
+
+fig4 = figure(4)
+camera.pointCloud2D.plotUndistortedImagePoints();
+title('Pixel space')
+xlabel('')
+ylabel('')
+axis equal
+hold on 
+% pause
+camera.pointCloud2D.plotDistortedImagePoints();
+legend('undistorted image points','distorted image points')
 % pause
 hold off

@@ -221,7 +221,7 @@ classdef Camera < handle
        % 6. undistortion
        %%%%%% has to be done
        function undistortion(this)
-           this.pointCloud2D.undistortPointCloud2D();
+           this.pointCloud2D.
        end
        
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
