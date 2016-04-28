@@ -245,7 +245,10 @@ classdef Camera < handle
        
        % 6. undistortion
        %%%%%% has to be done
-        
+       function undistortion(this)
+           this.pointCloud2D.undistortPointCloud2D();
+       end
+       
        
        %> @brief Projects 3D lines into the pixel plane
        %>

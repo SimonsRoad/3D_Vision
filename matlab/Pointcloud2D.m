@@ -102,7 +102,28 @@ classdef Pointcloud2D < handle
         
         
         % 6. undistortion
-       %%%%%% has to be done
+        %> @brief
+        %>
+        %> @param this Pointer to Pointcloud2D object
+        function undistortPointCloud2D(this)
+            % for every 2D point
+            A=[];
+            b=[];
+           for i = 1:this.numberOfPoints
+               [y, M] = this.pointsIn2D(i).createLSforUndistortion();
+               b = [b;y];
+               A = [A;M];
+           end
+           x = A\b;
+           
+           kappa_ = [x(1); x(2); x(3)];
+           p_ = [x(4); x(5)];
+           
+           for i = 1:this.numberOfPoints
+               this.pointsIn2D(i).undistortion(kappa_,p_);
+           end
+           
+        end % undistortion() end
         
         %> @brief Plots the projected 2D points
         %>
@@ -204,5 +225,26 @@ classdef Pointcloud2D < handle
             % plot projected 2D points
             plot(X,Y,'x','Color','magenta')
         end % plotBackProjectedImagePoints() end
+        
+        %> @brief Plots the projected 2D points
+        %>
+        %> @param this Pointer to object
+        %> @param figureHandle Handle to figure
+        function plotUndistortedImagePoints(this)
+            % Declare X and Y vectors
+            X = zeros(1,this.numberOfPoints);
+            Y = zeros(1,this.numberOfPoints);
+            
+            % Loop over all points
+            for i = 1:this.numberOfPoints
+                X(i) = this.pointsIn2D(i).undistortedCoordinatesInCameraFrame(1);
+                Y(i) = this.pointsIn2D(i).undistortedCoordinatesInCameraFrame(2);
+            end % for loop end
+            
+            % plot projected 2D points
+            plot(X,Y,'*','Color','black')
+            alpha(.5)
+        end % plotProjectedPoints() end
+        
     end % methods end
 end % classdef end

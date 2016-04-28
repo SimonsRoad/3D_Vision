@@ -23,6 +23,9 @@ classdef PointIn2D < handle
         backProjectionFromPixelToImageCoordinates               %> @param backProjectionFromPixelToImageCoordinates after adding pixel noise we transform pixel coord. back to euclidean image coord.
         homogeneousBackProjectionFromPixelToImageCoordinates    %> @param homogeneousBackProjectionFromPixelToImageCoordinates transformation from pixel to homogeneous image coordinates after pixel noise
         
+        undistortedCoordinatesInCameraFrame
+        homogeneousUndistortedCoordinatesInCameraFrame
+        
         % Noise in pixel space
         pixelNoiseMean                                          %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
         pixelNoiseVariance                                      %> @param Vector of variances for the anisotropic Gaussian noise of the 2D point
@@ -55,7 +58,7 @@ classdef PointIn2D < handle
             
         end % Constructor end
         
-        % 1. add distortion
+        % 1.1 add distortion
         %> @brief Add distortion to u,v coordinates
         %>
         %> @param this Pointer to object
@@ -72,6 +75,25 @@ classdef PointIn2D < handle
                + 2 * p(2) * uvCoordinates(1) * uvCoordinates(2) + p(1) * (radiusSquared + 2 * uvCoordinates(2)^2);
            this.homogeneousDistortedCoordinatesInCameraFrame = [ this.distortedCoordinatesInCameraFrame(1); this.distortedCoordinatesInCameraFrame(2);1];
         end % addDistortion() end
+        
+        % 1.2 Calculate Coefficients kappa_ and p_ for undistortion
+        %> @brief calculate Undistortion Coefficients
+        %>
+        %> @param this Pointer to object
+        function [b_, A_] = createLSforUndistortion(this)
+      
+           uvCoordinates = this.projectedCoordinates;
+           %centerOfDistortion = [0;0];
+           uvCoordinates_ = this.distortedCoordinatesInCameraFrame;
+           radiusSquared_ = uvCoordinates_(1)^2 + uvCoordinates_(2)^2;
+           
+           b_ = [uvCoordinates(1)/uvCoordinates_(1) - 1; ...
+               uvCoordinates(2)/uvCoordinates_(2) - 1];
+           A_ = [radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(2) radiusSquared_/uvCoordinates_(1)+2*uvCoordinates_(1);...
+               radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(1) radiusSquared_/uvCoordinates_(2)+2*uvCoordinates_(2)];
+ 
+        end % calculateUndistortionCoefficients() end
+        
         
         
         % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
@@ -138,7 +160,22 @@ classdef PointIn2D < handle
         end % transformFromPixelToImage() end
         
         % 6. undistortion
-       %%%%%% has to be done
+        %> @brief undistort in u,v coordinates
+        %>
+        %> @param this Pointer to object
+        %> @param kappa Radial distortion parameters 3-dimensional vector
+        %> @param p Tangential distortion parameters 2-dimensional vector
+        function undistortion(this, kappa, p)
+      
+           uvCoordinates = this.backProjectionFromPixelToImageCoordinates;
+           %centerOfDistortion = [0;0];
+           radiusSquared = uvCoordinates(1)^2 + uvCoordinates(2)^2;
+           this.undistortedCoordinatesInCameraFrame(1) = (1 + kappa(1) * radiusSquared + kappa(2) * radiusSquared^2 + kappa(3) * radiusSquared^3) * uvCoordinates(1) ...
+               + 2 * p(1) * uvCoordinates(1) * uvCoordinates(2) + p(2) * (radiusSquared + 2 * uvCoordinates(1)^2);
+           this.undistortedCoordinatesInCameraFrame(2) = (1 + kappa(1) * radiusSquared + kappa(2) * radiusSquared^2 + kappa(3) * radiusSquared^3) * uvCoordinates(2) ...
+               + 2 * p(2) * uvCoordinates(1) * uvCoordinates(2) + p(1) * (radiusSquared + 2 * uvCoordinates(2)^2);
+           this.homogeneousUndistortedCoordinatesInCameraFrame = [ this.undistortedCoordinatesInCameraFrame(1); this.undistortedCoordinatesInCameraFrame(2);1];
+        end % undistortion() end
         
         %> @brief Returns coordinates of this object of PointIn2D
         %>
