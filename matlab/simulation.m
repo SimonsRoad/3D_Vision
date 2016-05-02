@@ -26,7 +26,6 @@ camera.pointCloud3D = pointcloud3D;
 % Add noise to 3d points
 [trueP, ~] = camera.getPose();
 camera.pointCloud3D.addNoiseToAllPoints(trueP);
-
 camera.pointCloud3D.computeCameraFrameCoordinates(trueP);
 
 %% Project true 3D points to 2D points
@@ -55,9 +54,13 @@ camera.undistortion();
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);
 camera.estimatePose();
+camera.optimizePoseEstimation();
 
 % compute error
-[errorInTranslation, errorInOrientation] = camera.computePoseError();
+[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.estimatedPose);
+disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
+disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
+[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.optimizedEstimatedPose);
 disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
 disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
@@ -145,12 +148,12 @@ hold off
 % camera pose
 fig9 = figure(9);
 camera.pointCloud3D.plotTruePointcloud();
-axis equal
+axis vis3d
 hold on
-camera.visualizeTrueCamera(9)
+camera.visualizeTrueCamera(9);
 camera.pointCloud3D.plotNoisyPointcloud('false');
 camera.plotConfidenceIntervals();
-camera.visualizeEstimatedCamera(9)
+camera.visualizeEstimatedCamera(9);
 hold off
 
 fig10 = figure(10)

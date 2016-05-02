@@ -46,9 +46,9 @@ classdef PointIn2D < handle
         %> @retval obj An object of class PointIn2D
 
         % First, do the coordinates in pixel space
-        function obj = PointIn2D(noisyPointIn3D, focalLengthMatrix)
+        function obj = PointIn2D(pointIn3D, focalLengthMatrix)
             % Project true 3D points in camera frame to the focal plane
-            obj.homogeneousProjectedCoordinates = focalLengthMatrix * noisyPointIn3D.trueCoordinatesInCameraFrame;
+            obj.homogeneousProjectedCoordinates = focalLengthMatrix * pointIn3D.trueCoordinatesInCameraFrame;
             % Normalize to get homogeneous representation
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             

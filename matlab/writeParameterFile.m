@@ -4,9 +4,9 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 100;
+numberOfPoints = 10;
 
-shape = 'planar'; % Options: 'spherical', 'planar', 'cubic'
+shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
 cameraRadius = 2;
 polarAngleMax = pi/3;
