@@ -76,7 +76,7 @@ fig2 = figure(2);
 camera.pointCloud3D.plotTruePointcloud();
 axis equal
 hold on
-camera.visualizeTrueCamera(2)
+camera.visualizeTrueCamera(2);
 hold off
 
 % Plot camera true pose, true point cloud and point cloud of the noisy points
@@ -84,9 +84,9 @@ fig3 = figure(3);
 camera.pointCloud3D.plotTruePointcloud();
 axis equal
 hold on
-camera.visualizeTrueCamera(3)
+camera.visualizeTrueCamera(3);
 camera.pointCloud3D.plotNoisyPointcloud('false');
-camera.plotConfidenceIntervals();
+% camera.plotConfidenceIntervals();
 hold off
 
 % Plot true 3D points projected to image plane
@@ -152,11 +152,12 @@ axis vis3d
 hold on
 camera.visualizeTrueCamera(9);
 camera.pointCloud3D.plotNoisyPointcloud('false');
-camera.plotConfidenceIntervals();
+% camera.plotConfidenceIntervals();
 camera.visualizeEstimatedCamera(9);
+camera.visualizeOptimizedCamera(9);
 hold off
 
-fig10 = figure(10)
+fig10 = figure(10);
 camera.pointCloud2D.plotUndistortedImagePoints();
 title('Pixel space')
 xlabel('')
