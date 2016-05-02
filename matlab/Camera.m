@@ -10,7 +10,9 @@ classdef Camera < handle
    properties
        % Camera pose
        truePose                     %> @param truePose True pose of camera in world coordinates
-       estimatedPose                %> @param estimatedPose Estimated pose of camera in world coordinates
+       estimatedPose                %> @param estimatedPose Initial estimated pose of camera in world coordinates
+       optimizedEstimatedPose       %> @param optimizedEstimatedPose Non-linearly optimized initial estimation
+       estimationConfidence         %> @param estimationConfidence The confidence of the estimation
        
        % Camera projection matrices
        trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
@@ -172,6 +174,33 @@ classdef Camera < handle
            line(P(:,1), P(:,2), P(:,3), 'color', 'red')
        end
        
+       function optimizedCam = visualizeOptimizedCamera(this, figureHandle)
+           % Get estimated translation and rotation from estimatedPose
+           optimizedTranslation = this.optimizedEstimatedPose(1:3,4);
+           optimizedRotation = this.optimizedEstimatedPose(1:3,1:3);
+           
+           % Plot the estimated pose
+           figure(figureHandle)
+           optimizedCam = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 0]);
+           
+           % Camera center
+           optimizedPosition = optimizedRotation' * optimizedTranslation;
+           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 0]);
+           
+           % Camera frame of estimated pose
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[1; 0; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 1; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+       end
        
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
@@ -289,24 +318,28 @@ classdef Camera < handle
            this.estimatedPose(1:3,4) = t;
        end % estimatePose() end
        
+       function optimizePoseEstimation(this)
+           [this.optimizedEstimatedPose, this.estimationConfidence] = nonlinearOptimization(this.estimatedPose,this.pointCloud3D,this.pointCloud2D,this.f);
+       end
+       
        
        %> @brief Calculate the error in the pose estimation
        %>
        %> @retval errorInTranslation This is the error in camera translation in percent
        %> @retval errorInOrientation This is the error in orientation. The error is calculated as the sum of the acos of the scalar products of the unit vectors of the coordinate frames (todo: come up with a better way to describe this)
-       function [errorInTranslation, errorInOrientation] = computePoseError(this)
+       function [errorInTranslation, errorInOrientation] = computePoseError(this,pose)
            xTrue = this.truePose(:,1);
            yTrue = this.truePose(:,2);
            zTrue = this.truePose(:,3);
-           xEstimated = this.estimatedPose(:,1);
-           yEstimated = this.estimatedPose(:,2);
-           zEstimated = this.estimatedPose(:,3);
+           xEstimated = pose(:,1);
+           yEstimated = pose(:,2);
+           zEstimated = pose(:,3);
            scalarProducts = [xTrue'*xEstimated yTrue'*yEstimated zTrue'*zEstimated];
            % If *True = *Estimated their scalar product should be 1 as they
            % are normalized vectors. (The acos of 1 is 0)
            errorInOrientation = sum(abs(acos(scalarProducts)))*180/pi;
            trueTranslation = this.truePose(:,4);
-           estimatedTranslation = this.estimatedPose(:,4);
+           estimatedTranslation = pose(:,4);
            errorInTranslation = norm(trueTranslation-estimatedTranslation)/norm(trueTranslation)*100;
        end
        

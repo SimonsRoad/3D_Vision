@@ -70,21 +70,23 @@ camera.projectLinesFrom3DTo2D();
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);
 camera.estimatePose();
+camera.optimizePoseEstimation();
 
 % compute error
-[errorInTranslation, errorInOrientation] = camera.computePoseError();
+[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.estimatedPose);
+disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
+disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
+[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.optimizedEstimatedPose);
 disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
 disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
-
-% %% Plots
+%% Plots
 % % Plot the point cloud of the true points
 % fig1 = figure(1);
 % camera.pointCloud3D.plotTruePointcloud();
 % 
 % % Plot camera true pose with true point cloud
 % fig2 = figure(2);
-% 
 % camera.pointCloud3D.plotTruePointcloud();
 % axis equal
 % hold on
