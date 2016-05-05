@@ -42,7 +42,7 @@ classdef Linecloud3D < handle
                     % Convert to Cartesian coordinates
                     [x1,y1,z1] = sph2cart(azimuth(1), elevation(1), radius(1));
                     [x2,y2,z2] = sph2cart(azimuth(2), elevation(2), radius(2));
-                    obj.linesIn3D(i) = LineIn3D([x1; y1; z1; 1], [x2; y2; z2; 1]);
+                    obj.linesIn3D(i) = LineIn3D([x1; y1; z1], [x2; y2; z2]);
                 end
             elseif strcmp(obj.shape,'cubic')
                 for i = 1:obj.numberOfLines
@@ -58,6 +58,8 @@ classdef Linecloud3D < handle
                 error('No matching shape. Currently implemented shapes: cubic, planar, spherical')
                 return
             end
+            
+            % Set mean and variance for each line
             for i = 1:obj.numberOfLines
                 obj.linesIn3D(i).setMean(mean);
                 obj.linesIn3D(i).setVariance(variance);
@@ -68,8 +70,45 @@ classdef Linecloud3D < handle
         %> @brief
         %>
         %> @param this
+        %> @param truePose
+        function computeCameraFrameCoordinates(this, truePose)
+            % Fill in the true coordinates in camera frame
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).computeCameraFrameCoordinates(truePose);
+            end
+        end % computeCameraFrameCoordinates() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
+        %> @param T_CW
+        function addNoiseToAllLines(this, T_CW)
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).addNoise(T_CW);
+            end
+        end % addNoiseToAllLines() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
         function plotTrueLinecloud(this)
-            %------TODO----------------------------------------------------
-        end
+            % Plot every line seperately
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).plotTrueLine();
+            end
+        end % plotTrueLinecloud() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
+        function plotNoisyLinecloud(this)
+            % Plot every line seperately
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).plotNoisyLine();
+            end
+        end % plotTrueNoisycloud() end
     end % methods end
 end % classdef end

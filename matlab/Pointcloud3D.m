@@ -99,13 +99,16 @@ classdef Pointcloud3D < handle
 
         end
         
+        
+        %> @brief
+        %>
+        %> @param this
+        %> @param truePose
         function computeCameraFrameCoordinates(this, truePose)
             % Fill in the true coordinates in camera frame
            for i = 1:this.numberOfPoints
-               this.pointsIn3D(i).homogeneousTrueCoordinatesInCameraFrame = [truePose; 0 0 0 1]*this.pointsIn3D(i).homogeneousTrueCoordinatesInWorldFrame;
-               this.pointsIn3D(i).trueCoordinatesInCameraFrame = this.pointsIn3D(i).homogeneousTrueCoordinatesInCameraFrame(1:3);
+               this.pointsIn3D(i).computeCameraFrameCoordinates(truePose);
            end
-           
         end
 
         %> @brief Plot the points in their noisy coordinates

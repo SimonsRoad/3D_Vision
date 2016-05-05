@@ -14,7 +14,6 @@ classdef Camera < handle
        
        % Camera projection matrices
        trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
-       trueLineProjectionMatrix     %> @param trueLineProjectionMatrix Pluecker line representation of planes of true pose of the camera
        
        % Camera parameters
        f                            %> @param f Focal length
@@ -108,16 +107,6 @@ classdef Camera < handle
            
            % Calculate camera projection matrix
            obj.trueCameraProjectionMatrix = obj.K*obj.truePose;
-           
-           % Calculate line projection matrix
-           P_1 = obj.trueCameraProjectionMatrix(1,:)';
-           P_2 = obj.trueCameraProjectionMatrix(2,:)';
-           P_3 = obj.trueCameraProjectionMatrix(3,:)';
-           
-           obj.trueLineProjectionMatrix = zeros(3,6);
-           obj.trueLineProjectionMatrix(1,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_2, P_3) ))';
-           obj.trueLineProjectionMatrix(2,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_3, P_1) ))';
-           obj.trueLineProjectionMatrix(3,:) = (plueckerMatrixToPlueckerLine( hatOperator(P_1, P_2) ))';
        end % Camera() end
        
        
@@ -187,10 +176,10 @@ classdef Camera < handle
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
        %> @param this Pointer to Camera object
-       function projectFrom3DTo2D(this)
+       function projectPointsFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
             this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.focalLenghtMatrix);
-       end % projectFrom3DTo2D() end
+       end % projectPointsFrom3DTo2D() end
        
        % 1. Add distortion
        %> @brief Add distortion to u,v coordinates
@@ -250,11 +239,11 @@ classdef Camera < handle
        end
        
        
-       %> @brief Projects 3D lines into the pixel plane
+       %> @brief Projects 3D lines into the image plane
        %>
        %> @param this Pointer to this object
-       function projectLinesFrom3DToPixel(this)
-           this.lineCloud2D = Linecloud2D(this.lineCloud3D, this.trueLineProjectionMatrix);
+       function projectLinesFrom3DTo2D(this)
+           
        end
        
        
@@ -344,6 +333,7 @@ classdef Camera < handle
           estimatedPose = this.estimatedPose;
        end % getPose() end
        
+       
        function plotConfidenceIntervals(this)
 
            for i = 1:this.pointCloud3D.numberOfPoints
@@ -367,40 +357,3 @@ classdef Camera < handle
        end
    end % methods end
 end % classdef end
-
-
-%% Helper functions
-
-%> @brief
-%>
-%> @param plueckerMatrix
-%>
-%> @retval plueckerLine
-function plueckerLine = plueckerMatrixToPlueckerLine(plueckerMatrix)
-    % Check if pluecker matrix has size 4x4
-    if size(plueckerMatrix) ~= [4 4]
-        error('Pluecker matrix has not size 4x4')
-        return
-    else
-        % transform to pluecker line representation
-        l_12 = plueckerMatrix(1,2);
-        l_13 = plueckerMatrix(1,3);
-        l_14 = plueckerMatrix(1,4);
-        l_23 = plueckerMatrix(2,3);
-        l_24 = plueckerMatrix(2,4);
-        l_34 = plueckerMatrix(3,4);
-    
-        plueckerLine = [l_12; l_13; l_14; l_23; l_24; l_34];
-    end
-end
-
-
-%> @brief
-%>
-%> @param pointOne First point on a 3D line
-%> @param pointTwo Second point on a 3D line
-%>
-%> @retval plueckerLineMatrix Plücker Matrix representation of a 3D line
-function plueckerLineMatrix = hatOperator(pointOne, pointTwo)
-    plueckerLineMatrix = pointOne*pointTwo' - pointTwo*pointOne';
-end

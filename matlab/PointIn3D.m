@@ -63,6 +63,15 @@ classdef PointIn3D < handle
             this.anisotropicGaussianVariance = variance;
         end
         
+        %> @brief
+        %>
+        %> @param this
+        %> @param truePose
+        function computeCameraFrameCoordinates(this, truePose)
+            this.homogeneousTrueCoordinatesInCameraFrame = [truePose; 0 0 0 1]*this.homogeneousTrueCoordinatesInWorldFrame;
+            this.trueCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame(1:3);
+        end
+        
 
         %> @brief Add noise to this point, given the camera pose
         %>
@@ -70,10 +79,6 @@ classdef PointIn3D < handle
         %> @param T_WC Homogeneous transformation (in R^(3x4)) of the camera with respect to the world
 
         function addNoise(this,T_WC)
-            
-            % Transform true coordinates to camera frame
-            this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousTrueCoordinatesInWorldFrame;
-            this.trueCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame(1:3);
             
             % Initialize noisy coordinates in camera frame
             this.homogeneousNoisyCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame;

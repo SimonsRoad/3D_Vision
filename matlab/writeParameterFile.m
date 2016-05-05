@@ -42,7 +42,7 @@ lineIn3DNoiseModel = 'anisotropicGaussian';
 
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
 linecloudMean = scale*[0.0; 0.0; 0.0];
-linecloudVariance = scale*[0.01; 0.01; 0.1];
+linecloudVariance = scale*[0.02; 0.02; 0.2];
 
 %% Distortion parameters
 kappa = [0;0;0];                % radial distortion
