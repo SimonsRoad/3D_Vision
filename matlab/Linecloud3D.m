@@ -58,6 +58,8 @@ classdef Linecloud3D < handle
                 error('No matching shape. Currently implemented shapes: cubic, planar, spherical')
                 return
             end
+            
+            % Set mean and variance for each line
             for i = 1:obj.numberOfLines
                 obj.linesIn3D(i).setMean(mean);
                 obj.linesIn3D(i).setVariance(variance);
@@ -68,8 +70,45 @@ classdef Linecloud3D < handle
         %> @brief
         %>
         %> @param this
+        %> @param truePose
+        function computeCameraFrameCoordinates(this, truePose)
+            % Fill in the true coordinates in camera frame
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).computeCameraFrameCoordinates(truePose);
+            end
+        end % computeCameraFrameCoordinates() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
+        %> @param T_CW
+        function addNoiseToAllLines(this, T_CW)
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).addNoise(T_CW);
+            end
+        end % addNoiseToAllLines() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
         function plotTrueLinecloud(this)
-            %------TODO----------------------------------------------------
-        end
+            % Plot every line seperately
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).plotTrueLine();
+            end
+        end % plotTrueLinecloud() end
+        
+        
+        %> @brief
+        %>
+        %> @param this
+        function plotNoisyLinecloud(this)
+            % Plot every line seperately
+            for i = 1:this.numberOfLines
+                this.linesIn3D(i).plotNoisyLine();
+            end
+        end % plotTrueNoisycloud() end
     end % methods end
 end % classdef end

@@ -31,11 +31,20 @@ camera.pointCloud3D = pointcloud3D;
 % Copy linecloud3D to lineCloud3D of camera
 camera.lineCloud3D = linecloud3D;
 
-% Add noise to 3d points
+% Compute coordinates in camera frame of points and lines
 [trueP, ~] = camera.getPose();
-camera.pointCloud3D.addNoiseToAllPoints(trueP);
-
 camera.pointCloud3D.computeCameraFrameCoordinates(trueP);
+camera.lineCloud3D.computeCameraFrameCoordinates(trueP);
+
+% Add noise to 3d points and lines
+camera.pointCloud3D.addNoiseToAllPoints(trueP);
+camera.lineCloud3D.addNoiseToAllLines(trueP);
+
+%% Plot 3D lines
+figure(1)
+hold on
+camera.lineCloud3D.plotTrueLinecloud();
+camera.lineCloud3D.plotNoisyLinecloud();
 
 %% Project true 3D lines to 2D lines
 % Project 3D to 2D pixel lines
@@ -43,7 +52,7 @@ camera.projectLinesFrom3DToPixel();
 
 %% Project true 3D points to 2D points
 % Project 3d to 2d points
-camera.projectFrom3DTo2D();
+camera.projectPointsFrom3DTo2D();
 
 % Add distortion to 2d projection
 camera.addDistortion(kappa, p);
