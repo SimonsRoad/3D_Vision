@@ -8,6 +8,10 @@
 % =========================================================================
 classdef LineIn2D
     properties
+        startPointIP@PointIn2D % IP stands for image plane
+        endPointIP@PointIn2D
+        sampledPoints@Pointcloud2D
+        
         pixelCoordinates
     end
     
@@ -38,7 +42,7 @@ end % classdef LineIn2D end
 %> @param pointOne First point on a 3D line
 %> @param pointTwo Second point on a 3D line
 %>
-%> @retval plueckerLineMatrix Plücker Matrix representation of a 3D line
+%> @retval plueckerLineMatrix Pl?cker Matrix representation of a 3D line
 function plueckerLineMatrix = hatOperator(pointOne, pointTwo)
     plueckerLineMatrix = pointOne*pointTwo' - pointTwo*pointOne';
 end
@@ -55,3 +59,49 @@ function l = sideOperator(plueckerLineLeft, plueckerLineRight)
         - plueckerLineLeft(2)*plueckerLineRight(5) - plueckerLineLeft(5)*plueckerLineRight(2) ...
         + plueckerLineLeft(3)*plueckerLineRight(4) + plueckerLineLeft(4)*plueckerLineRight(3);
 end
+
+function linesampling(this, nrOfSamples, kappa, p, imageToPixelMatrix, noiseType, mean, variance)
+    
+    % creation of samples of a line
+    line = this.endPointIP - this.startPointIP;
+    linelength = norm(line);
+    direction = 1 / linelength * line;
+    
+    lengthstep = linelength / nrOfSamples;
+
+    for i= 0:nrOfSamples
+       sampledPoint = this.startPointIP + i * lengthstep * direction;
+       this.sampledPoints(i) = sampledPoint;       
+    end
+    
+    % add distortion and pixel noise to these samples
+    this.sampledPoints.addDistortion(kappa,p);
+    this.sampledPoints.calculateHomoegenousDistortedPixelPoints(imageToPixelMatrix);
+    this.sampledPoints.setDistortedPixelCoordinatesFromHomogeneousCoordinates();
+    this.sampledPoints.addPixelNoise(noiseType,mean, variance);
+    % back projection and undistortion of these sampels
+    this.sampledPoints.transformFromPixelToImage(imagetoPixelCoordinatesTrafo);
+    this.sampledPoints.undistortPointCloud2D();
+    
+    % fit a line through these samples
+    [y_hat, x, y] = linearRegression(this.sampledPoints);
+    plot(x,y,'.','Color','blue');
+    hold on
+    plot(x,y_hat,'.','Color','red');
+    hold off
+end
+
+function [y_hat, x, y] = linearRegression(PointCloudin2D)
+    
+    for i = 1:size(PointCloudin2D,1)
+       point = PointCloudin2D.pointsIn2D(i);
+       x(i) = point(1);
+       y(i) = point(2);
+    end
+    
+    X = [x ones(size(x))];
+    beta = (X' * X)\ X' * y;
+    y_hat = X * beta;
+end
+
+
