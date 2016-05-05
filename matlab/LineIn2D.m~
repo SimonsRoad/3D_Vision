@@ -84,24 +84,9 @@ function linesampling(this, nrOfSamples, kappa, p, imageToPixelMatrix, noiseType
     this.sampledPoints.undistortPointCloud2D();
     
     % fit a line through these samples
-    [y_hat, x, y] = linearRegression(this.sampledPoints);
-    plot(x,y,'.','Color','blue');
-    hold on
-    plot(x,y_hat,'.','Color','red');
-    hold off
+    
 end
 
-function [y_hat, x, y] = linearRegression(PointCloudin2D)
-    
-    for i = 1:size(PointCloudin2D,1)
-       point = PointCloudin2D.pointsIn2D(i);
-       x(i) = point(1);
-       y(i) = point(2);
-    end
-    
-    X = [x ones(size(x))];
-    beta = (X' * X)\ X' * y;
-    y_hat = X * beta;
+function linearRegression(PointCloudin2D)
+    for i = 1:size(PointCloudin2D,)
 end
-
-
