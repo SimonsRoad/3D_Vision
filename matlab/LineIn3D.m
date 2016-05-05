@@ -8,31 +8,13 @@
 % =========================================================================
 classdef LineIn3D < handle
     properties
-        % Coordinates in world frame
-        startingPointTrueCoordinatesInWorldFrame;               %> @param
-        startingPointTrueHomogeneousCoordinatesInWorldFrame;	%> @param
-        startingPointNoisyCoordinatesInWorldFrame;              %> @param
-        startingPointNoisyHomogeneousCoordinatesInWorldFrame;   %> @param
-        
-        endPointTrueCoordinatesInWorldFrame;                    %> @param 
-        endPointTrueHomogeneousCoordinatesInWorldFrame;         %> @param
-        endPointNoisyCoordinatesInWorldFrame;                   %> @param
-        endPointNoisyHomogeneousCoordinatesInWorldFrame         %> @param
-        
-        % Coordinates in camera frame
-        startingPointTrueCoordinatesInCameraFrame;              %> @param
-        startingPointTrueHomogeneousCoordinatesInCameraFrame;	%> @param
-        startingPointNoisyCoordinatesInCameraFrame;             %> @param
-        startingPointNoisyHomogeneousCoordinatesInCameraFrame;	%> @param
-        
-        endPointTrueCoordinatesInCameraFrame;                   %> @param
-        endPointTrueHomogeneousCoordinatesInCameraFrame;        %> @param
-        endPointNoisyCoordinatesInCameraFrame;                  %> @param
-        endPointNoisyHomogeneousCoordinatesInCameraFrame;       %> @param
+        % Two points represent a line
+        startPoint@PointIn3D            %> @param
+        endPoint@PointIn3D              %> @param
         
         % Noise parameters
-        mean;                                                   %> @param mean Vector with means for the noise of the 3D line
-        variance;                                               %> @param variance Vector with variances for the noise of the 3D line
+        mean;                           %> @param mean Vector with means for the noise of the 3D line
+        variance;                       %> @param variance Vector with variances for the noise of the 3D line
     end % properties end
    
 	methods
@@ -42,14 +24,14 @@ classdef LineIn3D < handle
         %> @param pointTwo Second 3D point in homogeneous coordinates to generate a 3D line
         %>
         %> @retval obj Object of LineIn3D
-        function obj = LineIn3D(startingPointInWorldFrame, endPointInWorldFrame)
+        function obj = LineIn3D(startPointInWorldFrame, endPointInWorldFrame)
             % Set homogeneous coordinates
-            obj.startingPointTrueHomogeneousCoordinatesInWorldFrame = startingPointInWorldFrame;
-            obj.endPointTrueHomogeneousCoordinatesInWorldFrame = endPointInWorldFrame;
+            obj.startPoint = PointIn3D(startPointInWorldFrame(1), startPointInWorldFrame(2), startPointInWorldFrame(3));
+            obj.endPoint = PointIn3D(endPointInWorldFrame(1), endPointInWorldFrame(2), endPointInWorldFrame(3));
             
-            % Set euclidean coordinates
-            obj.startingPointTrueCoordinatesInWorldFrame = obj.startingPointTrueHomogeneousCoordinatesInWorldFrame(1:3);
-            obj.endPointTrueCoordinatesInWorldFrame = obj.endPointTrueHomogeneousCoordinatesInWorldFrame(1:3);
+            % Initialize noise parameter
+            obj.setMean(-1);
+            obj.setVariance(-1);
         end % Constructor LineIn3D end
         
         
@@ -59,6 +41,8 @@ classdef LineIn3D < handle
         %> @param mean
         function setMean(this, mean)
             this.mean = mean;
+            this.startPoint.setMean(mean);
+            this.endPoint.setMean(mean);
         end % setMean() end
         
         
@@ -68,6 +52,8 @@ classdef LineIn3D < handle
         %> @param variance
         function setVariance(this, variance)
             this.variance = variance;
+            this.startPoint.setVariance(variance);
+            this.endPoint.setVariance(variance);
         end % setVariance() end
         
         
@@ -76,10 +62,10 @@ classdef LineIn3D < handle
         %> @param this Pointer to object
         function [trueCoordinatesInWorldFrame, noisyCoordinatesInWorldFrame, trueCoordinatesInCameraFrame, noisyCoordinatesInCameraFrame] = getStartingPoint(this)
             % Get starting points of line
-            trueCoordinatesInWorldFrame = this.startingPointTrueCoordinatesInWorldFrame;
-            noisyCoordinatesInWorldFrame = this.startingPointNoisyCoordinatesInWorldFrame;
-            trueCoordinatesInCameraFrame = this.startingPointTrueCoordinatesInCameraFrame;
-            noisyCoordinatesInCameraFrame = this.startingPointNoisyCoordinatesInCameraFrame;
+            trueCoordinatesInWorldFrame = this.startPoint.trueCoordinatesInWorldFrame;
+            noisyCoordinatesInWorldFrame = this.startPoint.noisyCoordinatesInWorldFrame;
+            trueCoordinatesInCameraFrame = this.startPoint.trueCoordinatesInCameraFrame;
+            noisyCoordinatesInCameraFrame = this.startPoint.noisyCoordinatesInCameraFrame;
         end % getStartingPoint() end
         
         
@@ -88,22 +74,22 @@ classdef LineIn3D < handle
         %> @param this Pointer to object
         function [trueCoordinatesInWorldFrame, noisyCoordinatesInWorldFrame, trueCoordinatesInCameraFrame, noisyCoordinatesInCameraFrame] = getEndPoint(this)
             % Get end points of line
-            trueCoordinatesInWorldFrame = this.endPointTrueCoordinatesInWorldFrame;
-            noisyCoordinatesInWorldFrame = this.endPointNoisyCoordinatesInWorldFrame;
-            trueCoordinatesInCameraFrame = this.endPointTrueCoordinatesInCameraFrame;
-            noisyCoordinatesInCameraFrame = this.endPointNoisyCoordinatesInCameraFrame;
+            trueCoordinatesInWorldFrame = this.endPoint.trueCoordinatesInWorldFrame;
+            noisyCoordinatesInWorldFrame = this.endPoint.noisyCoordinatesInWorldFrame;
+            trueCoordinatesInCameraFrame = this.endPoint.trueCoordinatesInCameraFrame;
+            noisyCoordinatesInCameraFrame = this.endPoint.noisyCoordinatesInCameraFrame;
         end % getEndPoint() end
         
         
         %> @brief
         %>
         %> @param this Pointer to object
-        function [trueDirectionInWorldFrame, trueDirectionInCameraFrame, noisyDirectionInWorldFrame, noisyDirectionInCameraFrame] = getDirectionOfLine(this)
+        function [trueDirectionInWorldFrame, noisyDirectionInWorldFrame, trueDirectionInCameraFrame, noisyDirectionInCameraFrame] = getDirectionOfLine(this)
             % Get direction of all point doubles, r_AB = r_B - r_A
-            trueDirectionInWorldFrame = this.endPointTrueCoordinatesInWorldFrame - this.startingPointTrueCoordinatesInWorldFrame;
-            trueDirectionInCameraFrame = this.endPointTrueCoordinatesInCameraFrame - this.startingPointTrueCoordinatesInCameraFrame;
-            noisyDirectionInWorldFrame = this.endPointNoisyCoordinatesInWorldFrame - this.startingPointNoisyCoordinatesInWorldFrame;
-            noisyDirectionInCameraFrame = this.endPointNoisyCoordinatesInCameraFrame - this.startingPointNoisyCoordinatesInCameraFrame;
+            trueDirectionInWorldFrame = this.endPoint.trueCoordinatesInWorldFrame - this.startPoint.trueCoordinatesInWorldFrame;
+            noisyDirectionInWorldFrame = this.endPoint.noisyCoordinatesInWorldFrame - this.startPoint.noisyCoordinatesInWorldFrame;
+            trueDirectionInCameraFrame = this.endPoint.trueCoordinatesInCameraFrame - this.startPoint.trueCoordinatesInCameraFrame;
+            noisyDirectionInCameraFrame = this.endPoint.noisyCoordinatesInCameraFrame - this.startPoint.noisyCoordinatesInCameraFrame;
         end % getDirectionOfLine() end
         
         
@@ -113,11 +99,8 @@ classdef LineIn3D < handle
         %> @param truePose
         function computeCameraFrameCoordinates(this, truePose)
             % Transform into camera frame coordinates
-            this.startingPointTrueHomogeneousCoordinatesInCameraFrame = [truePose; 0, 0, 0, 1]*this.startingPointTrueHomogeneousCoordinatesInWorldFrame;
-            this.startingPointTrueCoordinatesInCameraFrame = this.startingPointTrueHomogeneousCoordinatesInCameraFrame(1:3);
-
-            this.endPointTrueHomogeneousCoordinatesInCameraFrame = [truePose; 0, 0, 0, 1]*this.endPointTrueHomogeneousCoordinatesInWorldFrame;
-            this.endPointTrueCoordinatesInCameraFrame = this.endPointTrueHomogeneousCoordinatesInCameraFrame(1:3);
+            this.startPoint.computeCameraFrameCoordinates(truePose);
+            this.endPoint.computeCameraFrameCoordinates(truePose);
         end % computeCameraFrameCoordinates() end
         
         
@@ -126,30 +109,9 @@ classdef LineIn3D < handle
         %> @param this
         %> @param T_CW Transformation (in R^(3x4)) from world frame into the camera frame
         function addNoise(this, T_CW)
-            % Initialize noisy coordinates in camera frame
-            this.startingPointNoisyHomogeneousCoordinatesInCameraFrame = this.startingPointTrueHomogeneousCoordinatesInCameraFrame;
-            this.endPointNoisyHomogeneousCoordinatesInCameraFrame = this.endPointTrueHomogeneousCoordinatesInCameraFrame;
-            
-            % Add noise to starting point
-            noiseInCameraX = normrnd(this.mean(1),this.variance(1));
-            noiseInCameraY = normrnd(this.mean(2),this.variance(2));
-            noiseInCameraZ = normrnd(this.mean(3),this.variance(3));
-            this.startingPointNoisyHomogeneousCoordinatesInCameraFrame = this.startingPointNoisyHomogeneousCoordinatesInCameraFrame + [noiseInCameraX; noiseInCameraY; noiseInCameraZ; 0];
-            this.startingPointNoisyCoordinatesInCameraFrame = this.startingPointNoisyHomogeneousCoordinatesInCameraFrame(1:3);
-            
-            % Add noise to end point
-            noiseInCameraX = normrnd(this.mean(1),this.variance(1));
-            noiseInCameraY = normrnd(this.mean(2),this.variance(2));
-            noiseInCameraZ = normrnd(this.mean(3),this.variance(3));
-            this.endPointNoisyHomogeneousCoordinatesInCameraFrame = this.endPointNoisyHomogeneousCoordinatesInCameraFrame + [noiseInCameraX; noiseInCameraY; noiseInCameraZ; 0];
-            this.endPointNoisyCoordinatesInCameraFrame = this.endPointNoisyHomogeneousCoordinatesInCameraFrame(1:3);
-            
-            % Set noisy coordinates in world frame
-            this.startingPointNoisyHomogeneousCoordinatesInWorldFrame = [T_CW; 0, 0, 0, 1]\this.startingPointNoisyHomogeneousCoordinatesInCameraFrame;
-            this.startingPointNoisyCoordinatesInWorldFrame = this.startingPointNoisyHomogeneousCoordinatesInWorldFrame(1:3);
-            
-            this.endPointNoisyHomogeneousCoordinatesInWorldFrame = [T_CW; 0, 0, 0, 1]\this.endPointNoisyHomogeneousCoordinatesInCameraFrame;
-            this.endPointNoisyCoordinatesInWorldFrame = this.endPointNoisyHomogeneousCoordinatesInWorldFrame(1:3);
+            % Add noise to start and end point
+            this.startPoint.addNoise(T_CW);
+            this.endPoint.addNoise(T_CW);
         end % addNoise() end
         
         
@@ -158,9 +120,9 @@ classdef LineIn3D < handle
         %> @param
         function plotTrueLine(this)
             % Concatenate the starting and end point
-            X = [this.startingPointTrueCoordinatesInWorldFrame(1), this.endPointTrueCoordinatesInWorldFrame(1)];
-            Y = [this.startingPointTrueCoordinatesInWorldFrame(2), this.endPointTrueCoordinatesInWorldFrame(2)];
-            Z = [this.startingPointTrueCoordinatesInWorldFrame(3), this.endPointTrueCoordinatesInWorldFrame(3)];
+            X = [this.startPoint.trueCoordinatesInWorldFrame(1), this.endPoint.trueCoordinatesInWorldFrame(1)];
+            Y = [this.startPoint.trueCoordinatesInWorldFrame(2), this.endPoint.trueCoordinatesInWorldFrame(2)];
+            Z = [this.startPoint.trueCoordinatesInWorldFrame(3), this.endPoint.trueCoordinatesInWorldFrame(3)];
             
             % Plot the line
             plot3(X, Y, Z,'Color','blue');
@@ -172,9 +134,9 @@ classdef LineIn3D < handle
         %> @param
         function plotNoisyLine(this)
             % Concatenate the starting and end point
-            X = [this.startingPointNoisyCoordinatesInWorldFrame(1), this.endPointNoisyCoordinatesInWorldFrame(1)];
-            Y = [this.startingPointNoisyCoordinatesInWorldFrame(2), this.endPointNoisyCoordinatesInWorldFrame(2)];
-            Z = [this.startingPointNoisyCoordinatesInWorldFrame(3), this.endPointNoisyCoordinatesInWorldFrame(3)];
+            X = [this.startPoint.noisyCoordinatesInWorldFrame(1), this.endPoint.noisyCoordinatesInWorldFrame(1)];
+            Y = [this.startPoint.noisyCoordinatesInWorldFrame(2), this.endPoint.noisyCoordinatesInWorldFrame(2)];
+            Z = [this.startPoint.noisyCoordinatesInWorldFrame(3), this.endPoint.noisyCoordinatesInWorldFrame(3)];
             
             % Plot the line
             plot3(X ,Y ,Z ,'Color','red');

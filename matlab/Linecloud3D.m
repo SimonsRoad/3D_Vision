@@ -42,7 +42,7 @@ classdef Linecloud3D < handle
                     % Convert to Cartesian coordinates
                     [x1,y1,z1] = sph2cart(azimuth(1), elevation(1), radius(1));
                     [x2,y2,z2] = sph2cart(azimuth(2), elevation(2), radius(2));
-                    obj.linesIn3D(i) = LineIn3D([x1; y1; z1; 1], [x2; y2; z2; 1]);
+                    obj.linesIn3D(i) = LineIn3D([x1; y1; z1], [x2; y2; z2]);
                 end
             elseif strcmp(obj.shape,'cubic')
                 for i = 1:obj.numberOfLines
