@@ -178,7 +178,9 @@ classdef Camera < handle
        %> @param this Pointer to Camera object
        function projectPointsFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-            this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.focalLenghtMatrix);
+           pointcloud2D = ProjectionFrom3Dto2D(this.pointCloud3D, this.focalLenghtMatrix);
+           this.pointCloud2D = Pointcloud2D(pointcloud2D);
+           
        end % projectPointsFrom3DTo2D() end
        
        % 1. Add distortion
@@ -233,7 +235,6 @@ classdef Camera < handle
        end % transformFromPixelToImage() end
        
        % 6. undistortion
-       %%%%%% has to be done
        function undistortion(this)
            this.pointCloud2D.undistortPointCloud2D();
        end
@@ -243,10 +244,16 @@ classdef Camera < handle
        %>
        %> @param this Pointer to this object
        function projectLinesFrom3DTo2D(this)
-           
+           this.lineCloud2D = Linecloud2D(this.lineCloud3D, this.focalLenghtMatrix);
        end
        
+       function sampleLines(this, numberOfSamples)
+          this.lineCloud2D.samplingLines(numberOfSamples); 
+       end
        
+       function measuerementProcess(this, kappa, p, noiseType, mean, variance)
+          this.lineCloud2D.measurementProcessing(kappa, p, this.imagetoPixelCoordinatesTrafo, noiseType, mean, variance); 
+       end
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
        %> @param this Pointer to object
