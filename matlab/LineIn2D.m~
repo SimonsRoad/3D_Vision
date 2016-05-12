@@ -11,8 +11,8 @@ classdef LineIn2D < handle
         startPointIPTrue             % IP stands for image plane
         endPointIPTrue
         
-        startPointIPNoisy
-        endPointIPNoisy
+        startPointIPTrue
+        endPointIPTrue
         
         sampledPoints@Pointcloud2D
         
@@ -68,9 +68,6 @@ classdef LineIn2D < handle
 
             % fit a line through these samples
             estimatedSamples = linearRegression(this.sampledPoints);
-            
-            this.startPointIPNoisy = [estimatedSamples(1,1); estimatedSamples(1,2)];
-            this.endPointIPNoisy = [estimatedSamples(end,1); estimatedSamples(end,2)];
             
         end
         

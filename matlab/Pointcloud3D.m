@@ -3,9 +3,7 @@ classdef Pointcloud3D < handle
     % Properties
     
     properties
-        
-
-
+                
         pointsIn3D@PointIn3D;   %> @param pointsIn3D@PointIn3D Array of type PointIn3D to store the points of the 3D pointcloud
         numberOfPoints;         %> @param numberOfPoints Number of points in the 3D pointcloud
         scale;                  %> @param scale Absolute scale of the simulation
@@ -70,6 +68,22 @@ classdef Pointcloud3D < handle
                 obj.pointsIn3D(i).setVariance(variance_);
             end
         end
+        
+        
+        function pointCloud2D = ProjectionFrom3Dto2D(pointCloud3D, focalLengthMatrix)
+            
+            numberofpoints = pointCloud3D.getNumberOfPoints();
+            % Construct all the 2D correspondences with a loop
+            pointCloud2D = [];
+            for i = 1:numberofpoints
+                point3D = pointCloud3D.pointsIn3D(i);
+                point2D = PointFrom3Dto2D(point3D, focalLengthMatrix);
+                pointCloud2D = [pointCloud2D; point2D(1) point2D(2) point2D(3)];  
+                
+            end % for loop end
+            
+        end
+        
         
         %> @brief
         %>
@@ -138,7 +152,7 @@ classdef Pointcloud3D < handle
                 end
             end
         end
-        
+                
         
         %> @brief Return number of points
         %>

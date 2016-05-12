@@ -110,5 +110,14 @@ classdef Linecloud3D < handle
                 this.linesIn3D(i).plotNoisyLine();
             end
         end % plotTrueNoisycloud() end
+        
+        %> @brief Return number of lines
+        %>
+        %> @param this Pointer to this linecloud
+        %>
+        %> retval numberOfPoints The number of points in this pointcloud
+        function numberOfPoints = getNumberOfLines(this)
+            numberOfPoints = this.numberOfLines;
+        end
     end % methods end
 end % classdef end

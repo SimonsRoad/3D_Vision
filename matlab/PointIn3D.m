@@ -4,6 +4,10 @@ classdef PointIn3D < handle
     
     properties
         
+        X
+        Y
+        Z
+        
         % Coordinates in world frame
         trueCoordinatesInWorldFrame;                %> @param trueCoordinatesInWorldFrame Coordinates of ground truth 3D point in world frame
         homogeneousTrueCoordinatesInWorldFrame;     %> @param homogeneousTrueCoordinatesInWorldFrame Homogeneous coordinates of ground truth 3D point in world frame
@@ -36,6 +40,9 @@ classdef PointIn3D < handle
             if nargin < 3
                 error('PointIn3D has to be initialized with true coordinates')
             else
+                obj.X = x;
+                obj.Y = y;
+                obj.Z = z;
                 obj.trueCoordinatesInWorldFrame = [x;y;z];
                 obj.homogeneousTrueCoordinatesInWorldFrame = [x;y;z;1];
                 obj.setMean(-1);
@@ -43,7 +50,12 @@ classdef PointIn3D < handle
             end
         end
         
-
+        function point2D = PointFrom3Dto2D(truePointIn3D, focalLengthMatrix)
+             point2D = focalLengthMatrix * truePointIn3D.trueCoordinatesInCameraFrame;
+            % Normalize to get homogeneous representation
+             point2D =  point2D / point2D(3);
+        end
+        
         %> @brief Set the means for the noise of this point
         %>
         %> @param this Pointer to this PointIn3D object

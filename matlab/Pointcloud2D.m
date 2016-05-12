@@ -11,6 +11,7 @@ classdef Pointcloud2D < handle
     end
     
     methods
+        
         %> @brief Constructor projects a 3D pointcloud to 2D pointcloud based on camera ground truth pose
         %>
         %> @param pointCloud3D 3D pointcloud
@@ -18,19 +19,28 @@ classdef Pointcloud2D < handle
         %> @param cameraTruePose Ground truth pose of a camera
         %>
         %> @retval obj array with points in 2D
-        function obj = Pointcloud2D(pointCloud3D, focalLengthMatrix)
-
-            % Get number of points in pointCloud3D
-            obj.numberOfPoints = pointCloud3D.getNumberOfPoints();
-            
-            % Construct all the 2D correspondences with a loop
+%         function obj = Pointcloud2D(pointCloud3D, focalLengthMatrix)
+% 
+%             % Get number of points in pointCloud3D
+%             obj.numberOfPoints = pointCloud3D.getNumberOfPoints();
+%             
+%             % Construct all the 2D correspondences with a loop
+%             for i = 1:obj.numberOfPoints
+%                 point3D = pointCloud3D.pointsIn3D(i);
+%                 point2D = PointFrom3Dto2D(point3D, focalLengthMatrix);
+%                 obj.pointsIn2D(i) = PointIn2D(point2D(1), point2D(2), point2D(3));
+%                 %obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), focalLengthMatrix);
+% 
+%             end % for loop end
+%         end % Constructor end
+        
+        function obj = Pointcloud2D(pointcloud2D)
+            obj.numberOfPoints = size(pointcloud2D,1);
             for i = 1:obj.numberOfPoints
-
-                %obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), calibrationMatrix, focalLengthMatrix, cameraTruePose);
-
-                obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), focalLengthMatrix);
-
+                obj.pointsIn2D(i) = PointIn2D(pointcloud2D(i,1), pointcloud2D(i,2), pointcloud2D(i,3));
+                
             end % for loop end
+        
         end % Constructor end
         
         
@@ -106,6 +116,7 @@ classdef Pointcloud2D < handle
         %>
         %> @param this Pointer to Pointcloud2D object
         function undistortPointCloud2D(this)
+            
             % for every 2D point
             A=[];
             b=[];
@@ -123,7 +134,35 @@ classdef Pointcloud2D < handle
                this.pointsIn2D(i).undistortion(kappa_,p_);
            end
            
-        end % undistortion() end
+        end % undistortion() end             
+        
+        
+        function estimatedSamples = linearRegression(PointCloudin2D)
+            
+            x = zeros(PointCloudin2D.numberOfPoints,1);
+            y = zeros(PointCloudin2D.numberOfPoints,1);
+            
+            for i = 1:PointCloudin2D.numberOfPoints
+               point = PointCloudin2D.pointsIn2D(i);
+               x(i) = point.u;
+               y(i) = point.v;
+            end
+            
+            X = [x ones(size(x))];
+            beta = (X' * X)\ X' * y;
+            y_hat = X * beta;
+            
+            pointcloud2D = [x y ones(PointCloudin2D.numberOfPoints,1)];
+            estimatedSamples = pointcloud2D;
+            %estimatedSamples = Pointcloud2D(pointcloud2D);
+            
+            plot(x,y,'Color','blue');
+            hold on
+            plot(x,y_hat,'x','Color','red');
+            
+            
+        end
+        
         
         %> @brief Plots the projected 2D points
         %>
