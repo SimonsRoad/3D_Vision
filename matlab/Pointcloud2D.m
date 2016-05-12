@@ -157,6 +157,7 @@ classdef Pointcloud2D < handle
             %estimatedSamples = Pointcloud2D(pointcloud2D);
             
             plot(x,y,'Color','blue');
+            hold on
             plot(x,y_hat,'x','Color','red');
             
             
