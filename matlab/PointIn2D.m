@@ -6,7 +6,11 @@
 % =========================================================================
 classdef PointIn2D < handle
     properties
-
+        
+        u
+        v
+        w
+        
         % Coordinates in camera frame
         projectedCoordinates                                    %> @param projectedCoordinates Coordinates of the 3D to 2D projection
         homogeneousProjectedCoordinates                         %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
@@ -46,17 +50,18 @@ classdef PointIn2D < handle
         %> @retval obj An object of class PointIn2D
 
         % First, do the coordinates in pixel space
-        function obj = PointIn2D(pointIn3D, focalLengthMatrix)
-            % Project true 3D points in camera frame to the focal plane
-            obj.homogeneousProjectedCoordinates = focalLengthMatrix * pointIn3D.trueCoordinatesInCameraFrame;
+        function obj = PointIn2D(u, v, w)
+            obj.u = u;
+            obj.v = v;
+            obj.w = w;
+            obj.homogeneousProjectedCoordinates = [u; v; w];
             % Normalize to get homogeneous representation
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
-            
             % Get euclidean coordinates from homogeneous coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
             
-            
         end % Constructor end
+        
         
         % 1.1 add distortion
         %> @brief Add distortion to u,v coordinates

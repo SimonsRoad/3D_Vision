@@ -13,6 +13,12 @@ classdef Camera < handle
        estimatedPose                %> @param estimatedPose Initial estimated pose of camera in world coordinates
        optimizedEstimatedPose       %> @param optimizedEstimatedPose Non-linearly optimized initial estimation
        estimationConfidence         %> @param estimationConfidence The confidence of the estimation
+       optimizedEstimatedPoseWithLines
+       estimationConfidenceWithLines
+       
+       
+       % Camera projection matrices
+       trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
        
        % Camera parameters
        f                            %> @param f Focal length
@@ -36,6 +42,10 @@ classdef Camera < handle
        % Point clouds
        pointCloud3D@Pointcloud3D    %> @param pointCloud3D Member of type Pointcloud3D
        pointCloud2D@Pointcloud2D    %> @param pointCloud2D Member of type Pointcloud2D
+       
+       % Line clouds
+       lineCloud3D@Linecloud3D      %> @param lineCloud3D Member of type Linecloud3D
+       lineCloud2D@Linecloud2D      %> @param lineCloud2D Member of type Linecloud2D
        
        % PnP Algorithm
        pnpAlgorithm@PnPAlgorithm;   %> @param pnpAlgorithm Perspective N Point algorithm
@@ -100,6 +110,8 @@ classdef Camera < handle
            % Calculate camera calibration matrix
            obj.calculateCalibrationMatrix();
            
+           % Calculate camera projection matrix
+           obj.trueCameraProjectionMatrix = obj.K*obj.truePose;
        end % Camera() end
        
        
@@ -193,13 +205,43 @@ classdef Camera < handle
            line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
        end
        
+       function optimizedCamWithLines = visualizeOptimizedCameraWithLines(this, figureHandle)
+           % Get estimated translation and rotation from estimatedPose
+           optimizedTranslation = this.optimizedEstimatedPoseWithLines(1:3,4);
+           optimizedRotation = this.optimizedEstimatedPoseWithLines(1:3,1:3);
+           
+           % Plot the estimated pose
+           figure(figureHandle)
+           optimizedCamWithLines = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 1]);
+           
+           % Camera center
+           optimizedPosition = optimizedRotation' * optimizedTranslation;
+           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 1]);
+           
+           % Camera frame of estimated pose
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[1; 0; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 1; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+       end
+       
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
        %> @param this Pointer to Camera object
-       function projectFrom3DTo2D(this)
+       function projectPointsFrom3DTo2D(this)
            % Project noisy 3D points to 2D pixel space
-            this.pointCloud2D = Pointcloud2D(this.pointCloud3D, this.focalLenghtMatrix);
-       end % projectFrom3DTo2D() end
+           pointcloud2D = ProjectionFrom3Dto2D(this.pointCloud3D, this.focalLenghtMatrix);
+           this.pointCloud2D = Pointcloud2D(pointcloud2D);
+           
+       end % projectPointsFrom3DTo2D() end
        
        % 1. Add distortion
        %> @brief Add distortion to u,v coordinates
@@ -253,11 +295,25 @@ classdef Camera < handle
        end % transformFromPixelToImage() end
        
        % 6. undistortion
-       %%%%%% has to be done
        function undistortion(this)
            this.pointCloud2D.undistortPointCloud2D();
        end
        
+       
+       %> @brief Projects 3D lines into the image plane
+       %>
+       %> @param this Pointer to this object
+       function projectLinesFrom3DTo2D(this)
+           this.lineCloud2D = Linecloud2D(this.lineCloud3D, this.focalLenghtMatrix);
+       end
+       
+       function sampleLines(this, numberOfSamples)
+          this.lineCloud2D.samplingLines(numberOfSamples); 
+       end
+       
+       function measuerementProcess(this, kappa, p, noiseType, mean, variance)
+          this.lineCloud2D.measurementProcessing(kappa, p, this.imagetoPixelCoordinatesTrafo, noiseType, mean, variance); 
+       end
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
        %> @param this Pointer to object
@@ -295,6 +351,10 @@ classdef Camera < handle
        
        function optimizePoseEstimation(this)
            [this.optimizedEstimatedPose, this.estimationConfidence] = nonlinearOptimization(this.estimatedPose,this.pointCloud3D,this.pointCloud2D,this.f);
+       end
+       
+       function optimizePoseEstimationWithLines(this)
+           [this.optimizedEstimatedPoseWithLines, this.estimationConfidenceWithLines] = nonlinearOptimizationWithLines(this.estimatedPose, this.pointCloud3D, this.pointCloud2D, this.lineCloud3D, this.lineCloud2D, this.f);
        end
        
        
@@ -347,6 +407,7 @@ classdef Camera < handle
           truePose = this.truePose;
           estimatedPose = this.estimatedPose;
        end % getPose() end
+       
        
        function plotConfidenceIntervals(this)
 

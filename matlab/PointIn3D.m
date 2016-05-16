@@ -4,6 +4,10 @@ classdef PointIn3D < handle
     
     properties
         
+        X
+        Y
+        Z
+        
         % Coordinates in world frame
         trueCoordinatesInWorldFrame;                %> @param trueCoordinatesInWorldFrame Coordinates of ground truth 3D point in world frame
         homogeneousTrueCoordinatesInWorldFrame;     %> @param homogeneousTrueCoordinatesInWorldFrame Homogeneous coordinates of ground truth 3D point in world frame
@@ -36,6 +40,9 @@ classdef PointIn3D < handle
             if nargin < 3
                 error('PointIn3D has to be initialized with true coordinates')
             else
+                obj.X = x;
+                obj.Y = y;
+                obj.Z = z;
                 obj.trueCoordinatesInWorldFrame = [x;y;z];
                 obj.homogeneousTrueCoordinatesInWorldFrame = [x;y;z;1];
                 obj.setMean(-1);
@@ -43,7 +50,12 @@ classdef PointIn3D < handle
             end
         end
         
-
+        function point2D = PointFrom3Dto2D(pointIn3D, focalLengthMatrix)
+             point2D = focalLengthMatrix * pointIn3D.trueCoordinatesInCameraFrame;
+            % Normalize to get homogeneous representation
+             point2D =  point2D / point2D(3);
+        end
+        
         %> @brief Set the means for the noise of this point
         %>
         %> @param this Pointer to this PointIn3D object
@@ -63,6 +75,15 @@ classdef PointIn3D < handle
             this.anisotropicGaussianVariance = variance;
         end
         
+        %> @brief
+        %>
+        %> @param this
+        %> @param truePose
+        function computeCameraFrameCoordinates(this, truePose)
+            this.homogeneousTrueCoordinatesInCameraFrame = [truePose; 0 0 0 1]*this.homogeneousTrueCoordinatesInWorldFrame;
+            this.trueCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame(1:3);
+        end
+        
 
         %> @brief Add noise to this point, given the camera pose
         %>
@@ -70,10 +91,6 @@ classdef PointIn3D < handle
         %> @param T_WC Homogeneous transformation (in R^(3x4)) of the camera with respect to the world
 
         function addNoise(this,T_WC)
-            
-            % Transform true coordinates to camera frame
-            this.homogeneousTrueCoordinatesInCameraFrame = [T_WC; 0, 0, 0, 1]*this.homogeneousTrueCoordinatesInWorldFrame;
-            this.trueCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame(1:3);
             
             % Initialize noisy coordinates in camera frame
             this.homogeneousNoisyCoordinatesInCameraFrame = this.homogeneousTrueCoordinatesInCameraFrame;
