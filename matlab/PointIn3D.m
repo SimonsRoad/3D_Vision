@@ -50,8 +50,8 @@ classdef PointIn3D < handle
             end
         end
         
-        function point2D = PointFrom3Dto2D(truePointIn3D, focalLengthMatrix)
-             point2D = focalLengthMatrix * truePointIn3D.trueCoordinatesInCameraFrame;
+        function point2D = PointFrom3Dto2D(pointIn3D, focalLengthMatrix)
+             point2D = focalLengthMatrix * pointIn3D.trueCoordinatesInCameraFrame;
             % Normalize to get homogeneous representation
              point2D =  point2D / point2D(3);
         end

@@ -66,11 +66,19 @@ camera.undistortion();
 % Project 3D to 2D pixel lines
 camera.projectLinesFrom3DTo2D();
 
+figure(13)
+camera.sampleLines(numberOfSamples);
+camera.measuerementProcess(kappa, p, 'gaussian', linecloudMean, linecloudVariance);
+
+
 %% Pose Estimation
 % estimate camera pose with PnP algorithm
 camera.setPnPAlgorithm(pnpAlgorithm);
 camera.estimatePose();
 camera.optimizePoseEstimation();
+camera.optimizePoseEstimationWithLines();
+
+
 
 % compute error
 [errorInTranslation, errorInOrientation] = camera.computePoseError(camera.estimatedPose);
@@ -80,7 +88,7 @@ disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
 disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
-%% Plots
+% %% Plots
 % % Plot the point cloud of the true points
 % fig1 = figure(1);
 % camera.pointCloud3D.plotTruePointcloud();
@@ -100,7 +108,7 @@ disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 % hold on
 % camera.visualizeTrueCamera(3)
 % camera.pointCloud3D.plotNoisyPointcloud('false');
-% camera.plotConfidenceIntervals();
+% % camera.plotConfidenceIntervals();
 % hold off
 % 
 % % Plot true 3D points projected to image plane
@@ -157,20 +165,24 @@ disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 % legend('distorted image points to pixel','added pixel noise')
 % % pause
 % hold off
-% 
-% % Plot true point cloud, noisy point cloud, true camera pose and estimated
-% % camera pose
-% fig9 = figure(9);
-% camera.pointCloud3D.plotTruePointcloud();
-% axis equal
-% hold on
-% camera.visualizeTrueCamera(9)
-% camera.pointCloud3D.plotNoisyPointcloud('false');
+
+% Plot true point cloud, noisy point cloud, true camera pose and estimated
+% camera pose
+fig9 = figure(9);
+camera.pointCloud3D.plotTruePointcloud();
+axis equal
+hold on
+camera.visualizeTrueCamera(9)
+camera.pointCloud3D.plotNoisyPointcloud('false');
+camera.lineCloud3D.plotTrueLinecloud();
+camera.lineCloud3D.plotNoisyLinecloud();
 % camera.plotConfidenceIntervals();
-% camera.visualizeEstimatedCamera(9)
-% hold off
+camera.visualizeEstimatedCamera(9);
+camera.visualizeOptimizedCamera(9);
+camera.visualizeOptimizedCameraWithLines(9);
+hold off
 % 
-% fig10 = figure(10)
+% fig10 = figure(10);
 % camera.pointCloud2D.plotUndistortedImagePoints();
 % title('Pixel space')
 % xlabel('')
@@ -183,18 +195,15 @@ disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 % % pause
 % hold off
 
-% Plot 3D lines
-figure(11)
-hold on
-camera.lineCloud3D.plotTrueLinecloud();
-camera.lineCloud3D.plotNoisyLinecloud();
-hold off
-
-figure(12)
-hold on
-camera.lineCloud2D.plotProjectedLines();
-hold off
-
-figure(13)
-camera.sampleLines(numberOfSamples);
-camera.measuerementProcess(kappa, p, 'gaussian', linecloudMean, linecloudVariance);
+% % Plot 3D lines
+% figure(11)
+% hold on
+% camera.lineCloud3D.plotTrueLinecloud();
+% camera.lineCloud3D.plotNoisyLinecloud();
+% hold off
+% 
+% figure(12)
+% hold on
+% camera.lineCloud2D.plotProjectedLines();
+% camera.lineCloud2D.plotNoisyLines();
+% hold off

@@ -13,6 +13,9 @@ classdef Camera < handle
        estimatedPose                %> @param estimatedPose Initial estimated pose of camera in world coordinates
        optimizedEstimatedPose       %> @param optimizedEstimatedPose Non-linearly optimized initial estimation
        estimationConfidence         %> @param estimationConfidence The confidence of the estimation
+       optimizedEstimatedPoseWithLines
+       estimationConfidenceWithLines
+       
        
        % Camera projection matrices
        trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
@@ -202,6 +205,34 @@ classdef Camera < handle
            line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
        end
        
+       function optimizedCamWithLines = visualizeOptimizedCameraWithLines(this, figureHandle)
+           % Get estimated translation and rotation from estimatedPose
+           optimizedTranslation = this.optimizedEstimatedPoseWithLines(1:3,4);
+           optimizedRotation = this.optimizedEstimatedPoseWithLines(1:3,1:3);
+           
+           % Plot the estimated pose
+           figure(figureHandle)
+           optimizedCamWithLines = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 1]);
+           
+           % Camera center
+           optimizedPosition = optimizedRotation' * optimizedTranslation;
+           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 1]);
+           
+           % Camera frame of estimated pose
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[1; 0; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 1; 0];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           P1 = optimizedPosition;
+           P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
+           P = [P1'; P2'];
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+       end
+       
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
        %> @param this Pointer to Camera object
@@ -320,6 +351,10 @@ classdef Camera < handle
        
        function optimizePoseEstimation(this)
            [this.optimizedEstimatedPose, this.estimationConfidence] = nonlinearOptimization(this.estimatedPose,this.pointCloud3D,this.pointCloud2D,this.f);
+       end
+       
+       function optimizePoseEstimationWithLines(this)
+           [this.optimizedEstimatedPoseWithLines, this.estimationConfidenceWithLines] = nonlinearOptimizationWithLines(this.estimatedPose, this.pointCloud3D, this.pointCloud2D, this.lineCloud3D, this.lineCloud2D, this.f);
        end
        
        

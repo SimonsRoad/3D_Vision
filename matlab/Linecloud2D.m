@@ -18,13 +18,12 @@ classdef Linecloud2D < handle
         %> @param 
         %>
         %> @retval obj Object of LineCloud2D
-        function obj = Linecloud2D(lineCloud3D, focalLenghtMatrix)
+        function obj = Linecloud2D(lineCloud3D, focalLengthMatrix)
             % Get number of lines
             obj.numberOfLines = lineCloud3D.getNumberOfLines();
-            
             % Project all lines to the pixel plane
             for i = 1:obj.numberOfLines
-                obj.linesIn2D(i) = LineIn2D(lineCloud3D.linesIn3D(i), focalLenghtMatrix);
+                obj.linesIn2D(i) = LineIn2D(lineCloud3D.linesIn3D(i), focalLengthMatrix);
             end % for end
             
             
@@ -47,10 +46,20 @@ classdef Linecloud2D < handle
         %> @param this
         function plotProjectedLines(this)
             % Plot every line seperately
+            hold on
             for i = 1:this.numberOfLines
                 this.linesIn2D(i).plotProjectedLine();
             end
+            hold off
         end % plotTrueLinecloud() end
+        
+        function plotNoisyLines(this)
+            hold on
+            for i = 1:this.numberOfLines
+                this.linesIn2D(i).plotNoisyLine();
+            end
+            hold off
+        end
         
         
     end % properties end

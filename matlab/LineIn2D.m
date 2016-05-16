@@ -23,8 +23,8 @@ classdef LineIn2D < handle
         %>
         %> @retval obj Object of class LineIn2D
         function obj = LineIn2D(lineIn3D, focalLengthMatrix)
-            homogeneousStartPointIP = focalLengthMatrix * lineIn3D.startPoint.trueCoordinatesInWorldFrame;
-            homogeneousEndPointIP = focalLengthMatrix * lineIn3D.endPoint.trueCoordinatesInWorldFrame;
+            homogeneousStartPointIP = focalLengthMatrix/lineIn3D.startPoint.trueCoordinatesInCameraFrame(3) * lineIn3D.startPoint.trueCoordinatesInCameraFrame;
+            homogeneousEndPointIP = focalLengthMatrix/lineIn3D.endPoint.trueCoordinatesInCameraFrame(3) * lineIn3D.endPoint.trueCoordinatesInCameraFrame;
             
             obj.startPointIPTrue = homogeneousStartPointIP(1:2);
             obj.endPointIPTrue = homogeneousEndPointIP(1:2);
@@ -82,8 +82,14 @@ classdef LineIn2D < handle
             X = [this.startPointIPTrue(1), this.endPointIPTrue(1)];
             Y = [this.startPointIPTrue(2), this.endPointIPTrue(2)];
             % Plot the line
-            plot(X ,Y ,'Color','black');
+            plot(X ,Y ,'Color','blue');
         end % plotNoisyLine() end
+        
+        function plotNoisyLine(this)
+            X = [this.startPointIPNoisy(1), this.endPointIPNoisy(1)];
+            Y = [this.startPointIPNoisy(2), this.endPointIPNoisy(2)];
+            plot(X, Y, 'Color', 'red')
+        end
         
     end % methods end
 end % classdef LineIn2D end

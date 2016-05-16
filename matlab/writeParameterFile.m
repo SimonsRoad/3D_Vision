@@ -4,8 +4,8 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 100;
-numberOfLines = 4;
+numberOfPoints = 8;
+numberOfLines = 5;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
@@ -42,12 +42,12 @@ lineIn3DNoiseModel = 'anisotropicGaussian';
 
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
 linecloudMean = scale*[0.0; 0.0; 0.0];
-linecloudVariance = scale*[0.0; 0.0; 0.2];
+linecloudVariance = scale*[0.0; 0.0; 0.0];
 
 numberOfSamples = 10;
 
 %% Distortion parameters
-kappa = [1;1;0];                % radial distortion
+kappa = [0;0;0];                % radial distortion
 p = [0;0];                      % tangential distortion
 
 %% Pixel noise parameters
