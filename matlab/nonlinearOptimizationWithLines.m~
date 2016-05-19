@@ -3,7 +3,6 @@ function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimizationWithL
 % Set parameters
 TOL = 10e-3;
 MAX_ITER = 1000;
-ALPHA = 0;
 
 % Define helper variables
 nrOfPoints = pointCloud3D.numberOfPoints;
@@ -46,7 +45,7 @@ rotation = initialEstimation(:,1:3);
 
 % http://www.staff.city.ac.uk/~sbbh653/publications/euler.pdf
 if (rotation(3,1) ~= 1 && rotation(3,1) ~= -1)
-    beta1 = -asin(rotation(3,1));
+    beta1 = asin(rotation(3,1));
     beta2 = pi-beta1;
     alpha1 = atan2(rotation(3,2)/cos(beta1), rotation(3,3)/cos(beta1));
     alpha2 = atan2(rotation(3,2)/cos(beta2), rotation(3,3)/cos(beta2));
@@ -115,20 +114,13 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2DLines, matrixOfReprojectedLines);
 
     % Calculate the Jacobian of the line length (J_ll(x) \in \R^{N x 6}
-    J_ll = jacobian_ll(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
-    
-    % Calculate the Reprojection Error of the line length
-    matrixOfLineLengthReprojectionError = computeLineLengthReprojectionError(matrixOf2DLines, matrixOfReprojectedLines);
+    J_ll = jacobian_ll(x,y,z,alpha,beta,gamma,lineCloud3D,f);
     
     % Calculate gradient
-    g = matrixOfPointReprojectionError'*J_p...
-        + (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*matrixOfLineReprojectionError'*J_l...
-        + ALPHA * (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*matrixOfLineLengthReprojectionError'*J_ll;
+    g = matrixOfPointReprojectionError'*J_p + (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*matrixOfLineReprojectionError'*J_l;
     
     % Calculate approximation of Hessian
-    H = J_p'*J_p...
-        + (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*(J_l'*J_l)...
-        + ALPHA * (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*(J_ll'*J_ll);
+    H = J_p'*J_p + J_l'*J_l;
     
     % Calculate the update step
     updateStep = -pinv(H)*g';
@@ -291,8 +283,6 @@ function J_ll = jacobian_ll(x,y,z,alpha,beta,gamma,lineCloud3D,f)
         dr2_dphi = [   [ f/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)),                                                                           0, -(f*(x - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2,   (f*(z2j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) + z3j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta))))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) - (f*(z2j*cos(alpha)*cos(beta) - z3j*cos(beta)*sin(alpha))*(x - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, (f*(z3j*cos(alpha)*cos(beta)*cos(gamma) - z1j*cos(gamma)*sin(beta) + z2j*cos(beta)*cos(gamma)*sin(alpha)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) + (f*(z1j*cos(beta) + z3j*cos(alpha)*sin(beta) + z2j*sin(alpha)*sin(beta))*(x - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, -(f*(z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))]
                        [                                                                           0, f/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)), -(f*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, - (f*(z2j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z3j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma))))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) - (f*(z2j*cos(alpha)*cos(beta) - z3j*cos(beta)*sin(alpha))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, (f*(z3j*cos(alpha)*cos(beta)*sin(gamma) - z1j*sin(beta)*sin(gamma) + z2j*cos(beta)*sin(alpha)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) + (f*(z1j*cos(beta) + z3j*cos(alpha)*sin(beta) + z2j*sin(alpha)*sin(beta))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2,  (f*(z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))]];
         
-        reprojectedLines = reprojectLines(x,y,z,alpha,beta,gamma,lineCloud3D,f);
-                   
         r1x = reprojectedLines(1,1);
         r1y = reprojectedLines(1,2);
         r2x = reprojectedLines(2,1);
@@ -308,7 +298,7 @@ return
 
 function matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2DLines, matrixOfReprojectedLines)
     matrixOfLineReprojectionError = zeros(size(matrixOf2DLines,1)/2,1);
-    for j = 1:size(matrixOf2DLines,1)/2
+    for j = 1:size(matrixOf2DLines,1)/2;
         r1x = matrixOfReprojectedLines(2*(j-1)+1,1);
         r1y = matrixOfReprojectedLines(2*(j-1)+2,1);
         r2x = matrixOfReprojectedLines(2*(j-1)+1,2);
@@ -329,23 +319,6 @@ function matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2D
         h2 = sqrt((o2x - H2x)^2 + (o2y - H2y)^2);
         l = sqrt((o1x - o2x)^2 + (o1y - o2y)^2);
         matrixOfLineReprojectionError(j) = l/3*(h1^2 + h1*h2 + h2^2);
-    end
-return
-
-function matrixOfReprojectedLineLengthError = computeLineLengthReprojectionError(matrixOf2DLines, matrixOfReprojectedLines)
-    matrixOfReprojectedLineLengthError = zeros(size(matrixOf2DLines,1)/2,1);
-    for j = 1:size(matrixOf2DLines,1)/2
-        r1x = matrixOfReprojectedLines(2*(j-1)+1,1);
-        r1y = matrixOfReprojectedLines(2*(j-1)+2,1);
-        r2x = matrixOfReprojectedLines(2*(j-1)+1,2);
-        r2y = matrixOfReprojectedLines(2*(j-1)+2,2);
-        o1x = matrixOf2DLines(2*(j-1)+1,1);
-        o1y = matrixOf2DLines(2*(j-1)+2,1);
-        o2x = matrixOf2DLines(2*(j-1)+1,2);
-        o2y = matrixOf2DLines(2*(j-1)+2,2);
-        lo = sqrt((o1x - o2x)^2 + (o1y - o2y)^2);
-        lr = sqrt((r1x - r2x)^2 + (r1y - r2y)^2);
-        matrixOfReprojectedLineLengthError(j) = -(lo - lr);
     end
 return
 
