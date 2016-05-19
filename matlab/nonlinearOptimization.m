@@ -2,7 +2,7 @@ function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimization(init
 
 % Set parameters
 TOL = 10e-3;
-MAX_ITER = 1000;
+MAX_ITER = 20;
 
 % Define helper variables
 nrOfPoints = pointCloud3D.numberOfPoints;

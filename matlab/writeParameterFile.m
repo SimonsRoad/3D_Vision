@@ -4,8 +4,8 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 8;
-numberOfLines = 5;
+numberOfPoints = 15;
+numberOfLines = 2;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
@@ -47,12 +47,12 @@ linecloudVariance = scale*[0.0; 0.0; 0.0];
 numberOfSamples = 10;
 
 %% Distortion parameters
-kappa = [0;0;0];                % radial distortion
+kappa = [0.01;0.01;0.01];                % radial distortion
 p = [0;0];                      % tangential distortion
 
 %% Pixel noise parameters
 pixelNoiseMean = [0,0];
-pixelNoiseVariance = [0,0];
+pixelNoiseVariance = [2,2];
 
 %% Save Parameter File
 save('parameters.mat')

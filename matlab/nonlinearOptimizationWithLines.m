@@ -2,8 +2,8 @@ function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimizationWithL
 
 % Set parameters
 TOL = 10e-3;
-MAX_ITER = 1000;
-ALPHA = 0;
+MAX_ITER = 20;
+ALPHA = 0.8;
 
 % Define helper variables
 nrOfPoints = pointCloud3D.numberOfPoints;
@@ -114,6 +114,9 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     % Calculate the Reprojection Error of the lines
     matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2DLines, matrixOfReprojectedLines);
 
+    disp('Mean of line reprojection error')
+    disp(mean(matrixOfLineReprojectionError))
+    
     % Calculate the Jacobian of the line length (J_ll(x) \in \R^{N x 6}
     J_ll = jacobian_ll(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
     
@@ -121,9 +124,9 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     matrixOfLineLengthReprojectionError = computeLineLengthReprojectionError(matrixOf2DLines, matrixOfReprojectedLines);
     
     % Calculate gradient
-    g = matrixOfPointReprojectionError'*J_p...
-        + (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*matrixOfLineReprojectionError'*J_l...
-        + ALPHA * (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*matrixOfLineLengthReprojectionError'*J_ll;
+    g = (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines+pointCloud3D.numberOfPoints)*matrixOfPointReprojectionError'*J_p...
+        + (lineCloud3D.numberOfLines)/(lineCloud3D.numberOfLines+pointCloud3D.numberOfPoints)*matrixOfLineReprojectionError'*J_l...
+        + ALPHA * (lineCloud3D.numberOfLines)/(lineCloud3D.numberOfLines+pointCloud3D.numberOfPoints)*matrixOfLineLengthReprojectionError'*J_ll;
     
     % Calculate approximation of Hessian
     H = J_p'*J_p...
@@ -131,7 +134,7 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
         + ALPHA * (pointCloud3D.numberOfPoints)/(lineCloud3D.numberOfLines)*(J_ll'*J_ll);
     
     % Calculate the update step
-    updateStep = -pinv(H)*g';
+    updateStep = -pinv(H,10e-3)*g';
     
     % Update the pose
     pose = pose+0.5*updateStep;
