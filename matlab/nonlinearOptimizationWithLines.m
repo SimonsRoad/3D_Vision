@@ -45,7 +45,7 @@ rotation = initialEstimation(:,1:3);
 
 % http://www.staff.city.ac.uk/~sbbh653/publications/euler.pdf
 if (rotation(3,1) ~= 1 && rotation(3,1) ~= -1)
-    beta1 = asin(rotation(3,1));
+    beta1 = -asin(rotation(3,1));
     beta2 = pi-beta1;
     alpha1 = atan2(rotation(3,2)/cos(beta1), rotation(3,3)/cos(beta1));
     alpha2 = atan2(rotation(3,2)/cos(beta2), rotation(3,3)/cos(beta2));
