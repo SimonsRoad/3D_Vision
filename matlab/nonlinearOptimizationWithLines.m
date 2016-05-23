@@ -2,7 +2,7 @@ function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimizationWithL
 
 % Set parameters
 TOL = 10e-3;
-MAX_ITER = 20;
+MAX_ITER = 100;
 ALPHA = 0.8;
 
 % Define helper variables
@@ -79,17 +79,16 @@ end
 
 pose = [x0; y0; z0; alpha0; beta0; gamma0];
 
-matrixOfReprojectedPoints = reprojectPoints(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),pointCloud3D,f);
-matrixOfPointReprojectionError = matrixOfReprojectedPoints - matrixOf2DPoints;
-disp(['Norm of reprojection error of initial estimation: ' num2str(norm(matrixOfPointReprojectionError))])
+% matrixOfReprojectedPoints = reprojectPoints(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),pointCloud3D,f);
+% matrixOfPointReprojectionError = matrixOfReprojectedPoints - matrixOf2DPoints;
+% disp(['Norm of reprojection error of initial estimation: ' num2str(norm(matrixOfPointReprojectionError))])
 
-figure(20)
 
 updateStep = Inf;
 iter = 1;
 while( norm(updateStep) > TOL && iter <= MAX_ITER )
     
-    disp(['Iteration: ' num2str(iter)])
+    % disp(['Iteration: ' num2str(iter)])
     
     %% Points
     % Calculate Jacobian (J_p(x) \in \R^{2N x 6})
@@ -101,8 +100,6 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     % Calculate Reprojection Error (Delta z = z(x) - z \in \R^{2N x 1})
     matrixOfPointReprojectionError = matrixOfReprojectedPoints - matrixOf2DPoints;
     
-    disp('Mean of point reprojection error')
-    disp(mean(matrixOfPointReprojectionError))
     
     %% Lines
     % Calculate the Jacobian (J_l(x) \in \R^{N x 6})
@@ -114,9 +111,6 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     % Calculate the Reprojection Error of the lines
     matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2DLines, matrixOfReprojectedLines);
 
-    disp('Mean of line reprojection error')
-    disp(mean(matrixOfLineReprojectionError))
-    
     % Calculate the Jacobian of the line length (J_ll(x) \in \R^{N x 6}
     J_ll = jacobian_ll(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
     
@@ -143,44 +137,45 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     iter = iter + 1;
     
     %% Debug: Plot reprojected lines for each iteration
-    hold on
-    for i = 1:lineCloud2D.numberOfLines
-        X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
-        Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
-        plot(X, Y, 'Color', [0.9, 0.9, 0.9])
-    end
+%     hold on
+%     for i = 1:lineCloud2D.numberOfLines
+%         X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
+%         Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
+%         plot(X, Y, 'Color', [0.9, 0.9, 0.9])
+%     end
 end
 
-hold on
-matrixOfInitialReprojection = reprojectLines(x0, y0, z0, alpha0, beta0, gamma0,lineCloud3D,f);
-for i = 1:lineCloud2D.numberOfLines
-    X = [matrixOfInitialReprojection(2*(i-1)+1,1), matrixOfInitialReprojection(2*(i-1)+1,2)];
-    Y = [matrixOfInitialReprojection(2*(i-1)+2,1), matrixOfInitialReprojection(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'red')
-end
-for i = 1:lineCloud2D.numberOfLines
-    X = [matrixOf2DLines(2*(i-1)+1,1), matrixOf2DLines(2*(i-1)+1,2)];
-    Y = [matrixOf2DLines(2*(i-1)+2,1), matrixOf2DLines(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'blue')
-end
-matrixOfReprojectedLines = reprojectLines(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
-for i = 1:lineCloud2D.numberOfLines
-    X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
-    Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'cyan')
-end
-hold off
+% hold on
+% matrixOfInitialReprojection = reprojectLines(x0, y0, z0, alpha0, beta0, gamma0,lineCloud3D,f);
+% for i = 1:lineCloud2D.numberOfLines
+%     X = [matrixOfInitialReprojection(2*(i-1)+1,1), matrixOfInitialReprojection(2*(i-1)+1,2)];
+%     Y = [matrixOfInitialReprojection(2*(i-1)+2,1), matrixOfInitialReprojection(2*(i-1)+2,2)];
+%     plot(X, Y, 'Color', 'red')
+% end
+% for i = 1:lineCloud2D.numberOfLines
+%     X = [matrixOf2DLines(2*(i-1)+1,1), matrixOf2DLines(2*(i-1)+1,2)];
+%     Y = [matrixOf2DLines(2*(i-1)+2,1), matrixOf2DLines(2*(i-1)+2,2)];
+%     plot(X, Y, 'Color', 'blue')
+% end
+% matrixOfReprojectedLines = reprojectLines(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
+% for i = 1:lineCloud2D.numberOfLines
+%     X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
+%     Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
+%     plot(X, Y, 'Color', 'cyan')
+% end
+% hold off
 
 if (iter > MAX_ITER)
-    disp(['Nonlinear optimization did not converge in ' num2str(MAX_ITER) ' iterations!']);
+    disp(['Nonlinear optimization with points and lines did not converge in ' num2str(MAX_ITER) ' iterations!']);
+    R = [NaN, 0, 0; 0, 0, 0; 0, 0, 0];
+    t = [NaN; NaN; NaN];
 else
-    disp(['Nonlinear optimization converged in ' num2str(iter-1) ' iterations']);
+    disp(['Nonlinear optimization with points and lines converged in ' num2str(iter-1) ' iterations']);
+    R = rotz(pose(6)*180/pi)*roty(pose(5)*180/pi)*rotx(pose(4)*180/pi);
+    t = [pose(1); pose(2); pose(3)];
 end
 
-disp(['Norm of reprojection error of optimized estimation: ' num2str(norm(matrixOfPointReprojectionError))])
-
-R = rotz(pose(6)*180/pi)*roty(pose(5)*180/pi)*rotx(pose(4)*180/pi);
-t = [pose(1); pose(2); pose(3)];
+% disp(['Norm of reprojection error of optimized estimation: ' num2str(norm(matrixOfPointReprojectionError))])
 
 optimizedEstimatedPose = [R t];
 confidenceMatrix = inv(J_p'*J_p);

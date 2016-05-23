@@ -4,8 +4,8 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 15;
-numberOfLines = 2;
+numberOfPoints = 20;
+numberOfLines = 3;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
@@ -34,7 +34,7 @@ pnpAlgorithm = 'DLT'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
 pointIn3DNoiseModel = 'anisotropicGaussian';
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
 anisotropicGaussianMean = scale*[0.0; 0.0; 0.0];
-anisotropicGaussianVariance = scale*[0.01; 0.01; 0.1];
+anisotropicGaussianVariance = scale*[0.01; 0.01; 0.02];
 
 %% LineIn3D
 % Noise Models
@@ -42,7 +42,7 @@ lineIn3DNoiseModel = 'anisotropicGaussian';
 
 % Anisotropic Gaussian Noise: coordinates [X; Y; Z] refer to camera frame
 linecloudMean = scale*[0.0; 0.0; 0.0];
-linecloudVariance = scale*[0.0; 0.0; 0.0];
+linecloudVariance = scale*[0.01; 0.01; 0.02];
 
 numberOfSamples = 10;
 

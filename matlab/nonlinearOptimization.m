@@ -2,7 +2,7 @@ function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimization(init
 
 % Set parameters
 TOL = 10e-3;
-MAX_ITER = 20;
+MAX_ITER = 100;
 
 % Define helper variables
 nrOfPoints = pointCloud3D.numberOfPoints;
@@ -57,9 +57,9 @@ end
 
 pose = [x0; y0; z0; alpha0; beta0; gamma0];
 
-matrixOfReprojectedCoordinates = reproject(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),pointCloud3D,f);
-matrixOfReprojectionError = matrixOfReprojectedCoordinates - matrixOf2DPoints;
-disp(['Norm of reprojection error of initial estimation: ' num2str(norm(matrixOfReprojectionError))])
+% matrixOfReprojectedCoordinates = reproject(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),pointCloud3D,f);
+% matrixOfReprojectionError = matrixOfReprojectedCoordinates - matrixOf2DPoints;
+% disp(['Norm of reprojection error of initial estimation: ' num2str(norm(matrixOfReprojectionError))])
 
 updateStep = Inf;
 iter = 1;
@@ -85,12 +85,12 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
 end
 
 if (iter > MAX_ITER)
-    disp(['Nonlinear optimization did not converge in ' num2str(MAX_ITER) ' iterations!']);
+    disp(['Nonlinear optimization with points did not converge in ' num2str(MAX_ITER) ' iterations!']);
 else
-    disp(['Nonlinear optimization converged in ' num2str(iter-1) ' iterations']);
+    disp(['Nonlinear optimization with points converged in ' num2str(iter-1) ' iterations']);
 end
 
-disp(['Norm of reprojection error of optimized estimation: ' num2str(norm(matrixOfReprojectionError))])
+% disp(['Norm of reprojection error of optimized estimation: ' num2str(norm(matrixOfReprojectionError))])
 
 R = rotz(pose(6)*180/pi)*roty(pose(5)*180/pi)*rotx(pose(4)*180/pi);
 t = [pose(1); pose(2); pose(3)];

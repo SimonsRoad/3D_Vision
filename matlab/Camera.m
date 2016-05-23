@@ -129,7 +129,7 @@ classdef Camera < handle
            
            % Plot the true pose
            figure(figureHandle)
-           trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
+           % trueCam = plotCamera('Location',trueRotation' *trueTranslation,'Orientation',trueRotation,'Size',0.1,'Color',[0 0 1]);
            
            % Camera Centers
            truePosition = trueRotation' * trueTranslation;
@@ -156,7 +156,7 @@ classdef Camera < handle
            
            % Plot the estimated pose
            figure(figureHandle)
-           estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
+           % estimatedCam = plotCamera('Location',estimatedRotation' *estimatedTranslation,'Orientation',estimatedRotation,'Size',0.1,'Color',[1 0 0]);
            
            % Camera center
            estimatedPosition = estimatedRotation' * estimatedTranslation;
@@ -184,7 +184,7 @@ classdef Camera < handle
            
            % Plot the estimated pose
            figure(figureHandle)
-           optimizedCam = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 0]);
+           % optimizedCam = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 0]);
            
            % Camera center
            optimizedPosition = optimizedRotation' * optimizedTranslation;
@@ -212,7 +212,7 @@ classdef Camera < handle
            
            % Plot the estimated pose
            figure(figureHandle)
-           optimizedCamWithLines = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 1]);
+           % optimizedCamWithLines = plotCamera('Location',optimizedRotation' *optimizedTranslation,'Orientation',optimizedRotation,'Size',0.1,'Color',[0 1 1]);
            
            % Camera center
            optimizedPosition = optimizedRotation' * optimizedTranslation;

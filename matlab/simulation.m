@@ -5,10 +5,31 @@ clear all, close all, clc;
 parameterFile = 'parameters.mat';
 load(parameterFile);
 
-%% generate 3D points
-% Initialize random number generator
-rng('shuffle','twister')
+%% Set up experiments
+limitOfX = 10;
+numberOfExperiments = 50;
 
+% rows: different number of lines starting from the smallest
+% columns: error for DLT, error for nonlinear optimization with points,
+% error for nonlinear optimization with points and lines
+meanErrorInPosition = zeros(limitOfX, 3);
+meanErrorInOrientation = zeros(limitOfX, 3);
+varianceInPosition = zeros(limitOfX, 3);
+varianceInOrientation = zeros(limitOfX, 3);
+
+for i = 1:limitOfX
+    
+    % Initialize random number generator
+    rng('shuffle','twister')
+    
+    numberOfLines = i;
+    
+for j = 1:numberOfExperiments
+    
+    errorInPosition = zeros(numberOfExperiments, 3);
+    errorInOrientation = zeros(numberOfExperiments, 3);
+
+%% generate 3D points
 % Generate 3D Pointcloud
 pointcloud3D = Pointcloud3D(numberOfPoints,shape,scale,...
     anisotropicGaussianMean,anisotropicGaussianVariance);
@@ -66,7 +87,7 @@ camera.undistortion();
 % Project 3D to 2D pixel lines
 camera.projectLinesFrom3DTo2D();
 
-figure(13)
+% figure(13)
 camera.sampleLines(numberOfSamples);
 camera.measuerementProcess(kappa, p, 'gaussian', linecloudMean, linecloudVariance);
 
@@ -78,132 +99,98 @@ camera.estimatePose();
 camera.optimizePoseEstimation();
 camera.optimizePoseEstimationWithLines();
 
+[errorInPositionLin, errorInOrientationLin] = camera.computePoseError(camera.estimatedPose);
+errorInPosition(j,1) = errorInPositionLin;
+errorInOrientation(j,1) = errorInOrientationLin;
+[errorInPositionPoints, errorInOrientationPoints] = camera.computePoseError(camera.optimizedEstimatedPose);
+errorInPosition(j,2) = errorInPositionPoints;
+errorInOrientation(j,2) = errorInOrientationPoints;
+[errorInPositionLines, errorInOrientationLines] = camera.computePoseError(camera.optimizedEstimatedPoseWithLines);
+errorInPosition(j,3) = errorInPositionLines;
+errorInOrientation(j,3) = errorInOrientationLines;
 
 
-% compute error
-[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.estimatedPose);
-disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
-disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
-[errorInTranslation, errorInOrientation] = camera.computePoseError(camera.optimizedEstimatedPose);
-disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
-disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
-
-% %% Plots
-% % Plot the point cloud of the true points
-% fig1 = figure(1);
+% % Plot true point cloud, noisy point cloud, true camera pose and estimated
+% % camera pose
+% fig9 = figure(9);
 % camera.pointCloud3D.plotTruePointcloud();
-% 
-% % Plot camera true pose with true point cloud
-% fig2 = figure(2);
-% camera.pointCloud3D.plotTruePointcloud();
-% axis equal
+% axis vis3d
 % hold on
-% camera.visualizeTrueCamera(2)
-% hold off
-% 
-% % Plot camera true pose, true point cloud and point cloud of the noisy points
-% fig3 = figure(3);
-% camera.pointCloud3D.plotTruePointcloud();
-% axis equal
-% hold on
-% camera.visualizeTrueCamera(3)
+% camera.visualizeTrueCamera(9);
 % camera.pointCloud3D.plotNoisyPointcloud('false');
-% % camera.plotConfidenceIntervals();
-% hold off
-% 
-% % Plot true 3D points projected to image plane
-% fig4 = figure(4);
-% camera.pointCloud2D.plotImagePoints();
-% title('Image Plane')
-% xlabel('')
-% ylabel('')
-% axis([-.5*xResolution/kx .5*xResolution/kx -.5*yResolution/ky .5*yResolution/ky])
-% legend('true 3D projection')
-% 
-% % Plot projected points and distorted points on image plane
-% fig5 = figure(5);
-% camera.pointCloud2D.plotImagePoints();
-% hold on
-% camera.pointCloud2D.plotDistortedImagePoints();
-% title('Image Plane')
-% xlabel('')
-% ylabel('')
-% axis([-.5*xResolution/kx .5*xResolution/kx -.5*yResolution/ky .5*yResolution/ky])
-% legend('true 3D projection','true 3D distorted projection')
-% hold off
-% 
-% % Plot projected, distorted and backprojected points on image plane
-% fig6 = figure(6);
-% camera.pointCloud2D.plotImagePoints();
-% hold on
-% camera.pointCloud2D.plotDistortedImagePoints();
-% camera.pointCloud2D.plotBackProjectedImagePoints();
-% title('Image Plane')
-% xlabel('')
-% ylabel('')
-% axis([-.5*xResolution/kx .5*xResolution/kx -.5*yResolution/ky .5*yResolution/ky])
-% legend('true 3D projection','true 3D distorted projection','back projection from pixel')
-% 
-% % Plot pixel representation of distorted image plane points
-% fig7 = figure(7);
-% camera.pointCloud2D.plotDistortedPixelPoints();
-% title('Pixel Space')
-% xlabel('')
-% ylabel('')
-% axis([0 xResolution 0 yResolution])
-% legend('distorted image points to pixel')
-% 
-% % Plot pixel and noisy pixel points
-% fig8 = figure(8);
-% camera.pointCloud2D.plotDistortedPixelPoints();
-% hold on
-% camera.pointCloud2D.plotNoisyPixelPoints();
-% title('Pixel Space')
-% xlabel('')
-% ylabel('')
-% axis([0 xResolution 0 yResolution])
-% legend('distorted image points to pixel','added pixel noise')
-% % pause
-% hold off
-
-% Plot true point cloud, noisy point cloud, true camera pose and estimated
-% camera pose
-fig9 = figure(9);
-camera.pointCloud3D.plotTruePointcloud();
-axis vis3d
-hold on
-camera.visualizeTrueCamera(9);
-camera.pointCloud3D.plotNoisyPointcloud('false');
-camera.lineCloud3D.plotTrueLinecloud();
-camera.lineCloud3D.plotNoisyLinecloud();
-% camera.plotConfidenceIntervals();
-camera.visualizeEstimatedCamera(9);
-camera.visualizeOptimizedCamera(9);
-camera.visualizeOptimizedCameraWithLines(9);
-hold off
-% 
-% fig10 = figure(10);
-% camera.pointCloud2D.plotUndistortedImagePoints();
-% title('Pixel space')
-% xlabel('')
-% ylabel('')
-% axis equal
-% hold on 
-% % pause
-% camera.pointCloud2D.plotDistortedImagePoints();
-% legend('undistorted image points','distorted image points')
-% % pause
-% hold off
-
-% % Plot 3D lines
-% figure(11)
-% hold on
 % camera.lineCloud3D.plotTrueLinecloud();
 % camera.lineCloud3D.plotNoisyLinecloud();
+% % camera.plotConfidenceIntervals();
+% camera.visualizeEstimatedCamera(9);
+% camera.visualizeOptimizedCamera(9);
+% camera.visualizeOptimizedCameraWithLines(9);
 % hold off
-% 
-% figure(12)
-% hold on
-% camera.lineCloud2D.plotProjectedLines();
-% camera.lineCloud2D.plotNoisyLines();
-% hold off
+
+end
+
+meanErrorInPosition(i, 1) = mean(errorInPosition(:,1));
+meanErrorInPosition(i, 2) = mean(errorInPosition(:,2));
+meanErrorInPosition(i, 3) = mean(errorInPosition(:,3));
+
+varianceInPosition(i, 1) = var(errorInPosition(:,1));
+varianceInPosition(i, 2) = var(errorInPosition(:,2));
+varianceInPosition(i, 3) = var(errorInPosition(:,3));
+
+meanErrorInOrientation(i,1) = mean(errorInOrientation(:,1));
+meanErrorInOrientation(i,2) = mean(errorInOrientation(:,2));
+meanErrorInOrientation(i,3) = mean(errorInOrientation(:,3));
+
+varianceInOrientation(i, 1) = var(errorInOrientation(:,1));
+varianceInOrientation(i, 2) = var(errorInOrientation(:,2));
+varianceInOrientation(i, 3) = var(errorInOrientation(:,3));
+
+end
+disp('Mean error in position')
+disp(meanErrorInPosition)
+disp('Mean error in orientation')
+disp(meanErrorInOrientation)
+disp('Variance in position')
+disp(varianceInPosition)
+disp('variance in orientation')
+disp(varianceInOrientation)
+
+figure(10)
+hold on
+plot(1:limitOfX,meanErrorInPosition(:,1))
+plot(1:limitOfX,meanErrorInPosition(:,2))
+plot(1:limitOfX,meanErrorInPosition(:,3))
+title('Mean Error In Position')
+legend('DLT','Points','Points+Lines')
+hold off
+
+figure(11)
+hold on
+plot(1:limitOfX,meanErrorInOrientation(:,1))
+plot(1:limitOfX,meanErrorInOrientation(:,2))
+plot(1:limitOfX,meanErrorInOrientation(:,3))
+title('Mean Error In Orientation')
+legend('DLT','Points','Points+Lines')
+hold off
+
+%%
+
+figure(12)
+hold on
+plot(1:limitOfX,varianceInPosition(:,1))
+plot(1:limitOfX,varianceInPosition(:,2))
+plot(1:limitOfX,varianceInPosition(:,3))
+title('Variance In Position')
+legend('DLT','Points','Points+Lines')
+hold off
+ %% 
+figure(13)
+colormap(linspecer)
+hold on
+plot(1:limitOfX,varianceInOrientation(:,1))
+plot(1:limitOfX,varianceInOrientation(:,2))
+plot(1:limitOfX,varianceInOrientation(:,3))
+title('Variance In Orientation')
+legend('DLT','Points','Points+Lines')
+hold off
+
+
