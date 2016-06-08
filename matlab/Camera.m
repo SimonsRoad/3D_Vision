@@ -1,54 +1,46 @@
-% =========================================================================
-%> @brief Class Camera sets a camera in space and computes estimated camera pose from 3D-2D point correspondences
-%>
-%> 
-%>
-%> 
-%>
-% =========================================================================
+%> @brief Camera Class sets a camera in space and computes estimated camera pose from 3D-2D point correspondences
 classdef Camera < handle
    properties
        % Camera pose
-       truePose                     %> @param truePose True pose of camera in world coordinates
-       estimatedPose                %> @param estimatedPose Initial estimated pose of camera in world coordinates
-       optimizedEstimatedPose       %> @param optimizedEstimatedPose Non-linearly optimized initial estimation
-       estimationConfidence         %> @param estimationConfidence The confidence of the estimation
-       optimizedEstimatedPoseWithLines
-       estimationConfidenceWithLines
-       
+       truePose                         %> @param truePose True pose of camera in world coordinates
+       estimatedPose                    %> @param estimatedPose Initial estimated pose of camera in world coordinates
+       optimizedEstimatedPose           %> @param optimizedEstimatedPose Non-linearly optimized initial estimation
+       estimationConfidence             %> @param estimationConfidence The confidence of the estimation
+       optimizedEstimatedPoseWithLines  %> @param optimizedEstimatedPoseWithLines Estimated Pose after nonlinear optimization with points and lines
+       estimationConfidenceWithLines    %> @param estimationConfidenceWithLines The confidence of optimzied estimation with points and lines
        
        % Camera projection matrices
-       trueCameraProjectionMatrix   %> @param trueCameraProjectionMatrix P = K[R t]
+       trueCameraProjectionMatrix       %> @param trueCameraProjectionMatrix P = K[R t]
        
        % Camera parameters
-       f                            %> @param f Focal length
-       kx                           %> @param kx Pixel per unit length in x-direction
-       ky                           %> @param ky Pixel per unit length in y-direction
-       xResolution                  %> @param xResolution Pixel resolution in x-direction
-       yResolution                  %> @param yResolution Pixel resolution in y-direction
-       x0                           %> @param x0 Pixel x-coordinate of principle point
-       y0                           %> @param y0 Pixel y-coordinate of principle point
-       skew                         %> @param skew Skew paramater of camera sensor
-       imagetoPixelCoordinatesTrafo %> @param ImagetoPixelCoordinatesTrafo Matrix from u,y to x,y coordinates
-       focalLenghtMatrix            %> @param focallengthMatrix Matrix [f 0 0; 0 f 0; 0 0 1]
-       K                            %> @param K Calibration matrix
-       distortionModel              %> @param distortionModel String Distortion model
-       kappa                        %> @param kappa Radial distortion parameters
-       p                            %> @param p tangential distortion parameters
+       f                                %> @param f Focal length
+       kx                               %> @param kx Pixel per unit length in x-direction
+       ky                               %> @param ky Pixel per unit length in y-direction
+       xResolution                      %> @param xResolution Pixel resolution in x-direction
+       yResolution                      %> @param yResolution Pixel resolution in y-direction
+       x0                               %> @param x0 Pixel x-coordinate of principle point
+       y0                               %> @param y0 Pixel y-coordinate of principle point
+       skew                             %> @param skew Skew paramater of camera sensor
+       imagetoPixelCoordinatesTrafo     %> @param ImagetoPixelCoordinatesTrafo Matrix from u,y to x,y coordinates
+       focalLenghtMatrix                %> @param focallengthMatrix Matrix [f 0 0; 0 f 0; 0 0 1]
+       K                                %> @param K Calibration matrix
+       distortionModel                  %> @param distortionModel String Distortion model
+       kappa                            %> @param kappa Radial distortion parameters
+       p                                %> @param p tangential distortion parameters
        
        % Pose estimation algorithm
-       perspectiveNPointAlgorithm   %> @param perspectiveNPointAlgorithm String of algorithm used for pose estimation
+       perspectiveNPointAlgorithm       %> @param perspectiveNPointAlgorithm String of algorithm used for pose estimation
        
        % Point clouds
-       pointCloud3D@Pointcloud3D    %> @param pointCloud3D Member of type Pointcloud3D
-       pointCloud2D@Pointcloud2D    %> @param pointCloud2D Member of type Pointcloud2D
+       pointCloud3D@Pointcloud3D        %> @param pointCloud3D Member of type Pointcloud3D
+       pointCloud2D@Pointcloud2D        %> @param pointCloud2D Member of type Pointcloud2D
        
        % Line clouds
-       lineCloud3D@Linecloud3D      %> @param lineCloud3D Member of type Linecloud3D
-       lineCloud2D@Linecloud2D      %> @param lineCloud2D Member of type Linecloud2D
+       lineCloud3D@Linecloud3D          %> @param lineCloud3D Member of type Linecloud3D
+       lineCloud2D@Linecloud2D          %> @param lineCloud2D Member of type Linecloud2D
        
        % PnP Algorithm
-       pnpAlgorithm@PnPAlgorithm;   %> @param pnpAlgorithm Perspective N Point algorithm
+       pnpAlgorithm@PnPAlgorithm;       %> @param pnpAlgorithm Perspective N Point algorithm
    end % Properties end
    
    methods
@@ -115,13 +107,12 @@ classdef Camera < handle
        end % Camera() end
        
        
-       %> @brief Visualizes the camera
+       %> @brief Visualizes the true camera
        %>
        %> @param this Pointer of Camera object
        %> @param figureHandle Figure number
        %>
        %> @retval trueCam Handle to true camera pose plot
-       %> @retval estimatedCam Handle to estimated camera pose plot
        function trueCam = visualizeTrueCamera(this, figureHandle)
            % Get true translation and rotation from truePose
            trueTranslation = this.truePose(1:3,4);
@@ -149,6 +140,12 @@ classdef Camera < handle
        end % visualizeCamera() end
        
        
+       %> @brief Visualizes the estimated camera
+       %>
+       %> @param this Pointer of Camera object
+       %> @param figureHandle Figure number
+       %>
+       %> @retval estimatedCam Handle to estimated camera pose plot
        function estimatedCam = visualizeEstimatedCamera(this, figureHandle)
            % Get estimated translation and rotation from estimatedPose
            estimatedTranslation = this.estimatedPose(1:3,4);
@@ -175,8 +172,15 @@ classdef Camera < handle
            P2 = estimatedPosition+estimatedRotation'*[0; 0; 1];
            P = [P1'; P2'];
            line(P(:,1), P(:,2), P(:,3), 'color', 'red')
-       end
+       end % visualizeEstimatedCamera() end
        
+       
+       %> @brief Visualizes the optimized estimated camera
+       %>
+       %> @param this Pointer of Camera object
+       %> @param figureHandle Figure number
+       %>
+       %> @retval optimizedCam Handle to optimized estimated camera pose plot
        function optimizedCam = visualizeOptimizedCamera(this, figureHandle)
            % Get estimated translation and rotation from estimatedPose
            optimizedTranslation = this.optimizedEstimatedPose(1:3,4);
@@ -203,8 +207,15 @@ classdef Camera < handle
            P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
            P = [P1'; P2'];
            line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
-       end
+       end % visualizeOptimizedCamera() end
        
+       
+       %> @brief Visualizes the estimated camera optimized with lines
+       %>
+       %> @param this Pointer of Camera object
+       %> @param figureHandle Figure number
+       %>
+       %> @retval optimizedCamWithLines Handle to optimized estimated camera pose plot
        function optimizedCamWithLines = visualizeOptimizedCameraWithLines(this, figureHandle)
            % Get estimated translation and rotation from estimatedPose
            optimizedTranslation = this.optimizedEstimatedPoseWithLines(1:3,4);
@@ -231,7 +242,8 @@ classdef Camera < handle
            P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
            P = [P1'; P2'];
            line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
-       end
+       end % visualizeOptimizedCameraWithLines() end
+       
        
        %> @brief Projects a pointcloud in 3D into a pointcloud in 2D
        %>
@@ -240,10 +252,9 @@ classdef Camera < handle
            % Project noisy 3D points to 2D pixel space
            pointcloud2D = ProjectionFrom3Dto2D(this.pointCloud3D, this.focalLenghtMatrix);
            this.pointCloud2D = Pointcloud2D(pointcloud2D);
-           
        end % projectPointsFrom3DTo2D() end
        
-       % 1. Add distortion
+       
        %> @brief Add distortion to u,v coordinates
        %>
        %> @param this Pointer to object
@@ -253,7 +264,7 @@ classdef Camera < handle
            this.pointCloud2D.addDistortion(kappa, p);
        end % addDistortion() end
        
-       % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
+       
        %> @brief Calculate the homogeneous distorted points in uv coordinates
        %>
        %> @param this Pointer to object (this.imagetoPixelCoordinatesTrafo) is needed
@@ -261,7 +272,7 @@ classdef Camera < handle
            this.pointCloud2D.calculateHomoegenousDistortedPixelPoints(this.imagetoPixelCoordinatesTrafo);
        end % calculateHomoegenousDistortedPixelPoints() end
        
-       % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
+       
        %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
        %>
        %> @param this Pointer to object
@@ -269,8 +280,8 @@ classdef Camera < handle
           this.pointCloud2D.setDistortedPixelCoordinatesFromHomogeneousCoordinates(); 
        end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
        
-       % 4. add pixel noise
-       %> @brief
+       
+       %> @brief Adds pixel noise to all points
        %>
        %> @param noiseType String type of noise. Options are 'noNoise', 'uniformly', 'gaussian'
        %> @param this Pointer to Camera object
@@ -286,18 +297,21 @@ classdef Camera < handle
            end
        end % addPixelNoise() end
        
-       % 5. back projection to image coordinates
-       %> @brief transform from xy (pixel) to uv (image) coordinates
+       
+       %> @brief Transform from xy (pixel) to uv (image) coordinates
        %>
        %> @param this Pointer to Camera object
        function transformFromPixelToImage(this)
            this.pointCloud2D.transformFromPixelToImage(this.imagetoPixelCoordinatesTrafo); 
        end % transformFromPixelToImage() end
        
-       % 6. undistortion
+       
+       %> @brief Undistorts the backprojected points from pixel to image plane
+       %>
+       %> @param this Pointer to this object
        function undistortion(this)
            this.pointCloud2D.undistortPointCloud2D();
-       end
+       end % undistortion() end
        
        
        %> @brief Projects 3D lines into the image plane
@@ -305,26 +319,42 @@ classdef Camera < handle
        %> @param this Pointer to this object
        function projectLinesFrom3DTo2D(this)
            this.lineCloud2D = Linecloud2D(this.lineCloud3D, this.focalLenghtMatrix);
-       end
+       end % projectLinesFrom3DTo3D() end
        
+       
+       %> @brief Samples lines
+       %>
+       %> @param this Pointer to this object
+       %> @param numberOfSamples
        function sampleLines(this, numberOfSamples)
           this.lineCloud2D.samplingLines(numberOfSamples); 
-       end
+       end % sampleLines() end
        
+       
+       %> @brief
+       %>
+       %> @param this Pointer to this object
+       %> @param kappa
+       %> @param p
+       %> @param noiseType
+       %> @mean
+       %> @variance
        function measuerementProcess(this, kappa, p, noiseType, mean, variance)
           this.lineCloud2D.measurementProcessing(kappa, p, this.imagetoPixelCoordinatesTrafo, noiseType, mean, variance); 
-       end
+       end % measuerementProcess() end
+       
+       
        %> @brief Calculates the transformation Matrix from UV to XY (pixel coordinates) [kx s x0; 0 ky y0; 0 0 1]
        %> 
        %> @param this Pointer to object
        function calculateUVtoPixelMatrix(this)
            this.imagetoPixelCoordinatesTrafo = [this.kx, this.skew, this.x0;
-               0, this.ky, this.y0;
-               0, 0, 1];
+                                                      0,   this.ky, this.y0;
+                                                      0,         0,       1];
        end % calculateUVtoPixelMatrix() end
        
        
-       %> @brief Calculates the focallength matrix [f 0 0; 0 f 0; 0 0 1]
+       %> @brief Calculates the focallength matrix diag([f,f,1])
        %> 
        %> @param this Pointer to object
        function calculateFocallengthMatrix(this)
@@ -342,6 +372,8 @@ classdef Camera < handle
        
        
        %> @brief Estimate the camera pose with a pnp algorithm
+       %>
+       %> @param this Pointer to this object
        function estimatePose(this)
            [R,t] = this.pnpAlgorithm.estimatePose([this.f 0 0; 0 this.f 0; 0 0 1]);
            this.estimatedPose(1:3,1:3) = R;
@@ -349,13 +381,21 @@ classdef Camera < handle
            this.estimatedPose(1:3,4) = t;
        end % estimatePose() end
        
+       
+       %> @brief Optimize the estimated camera pose using points
+       %>
+       %> @param this Pointer to this object
        function optimizePoseEstimation(this)
            [this.optimizedEstimatedPose, this.estimationConfidence] = nonlinearOptimization(this.estimatedPose,this.pointCloud3D,this.pointCloud2D,this.f);
-       end
+       end % optimizePoseEstimation() end
        
+       
+       %> @brief Optimize the estimated camera pose using points and lines
+       %>
+       %> @param this Pointer to this object
        function optimizePoseEstimationWithLines(this)
            [this.optimizedEstimatedPoseWithLines, this.estimationConfidenceWithLines] = nonlinearOptimizationWithLines(this.estimatedPose, this.pointCloud3D, this.pointCloud2D, this.lineCloud3D, this.lineCloud2D, this.f);
-       end
+       end % optimizePoseEstimationWithLines() end
        
        
        %> @brief Calculate the error in the pose estimation
@@ -376,7 +416,7 @@ classdef Camera < handle
            trueTranslation = this.truePose(:,4);
            estimatedTranslation = pose(:,4);
            errorInTranslation = norm(trueTranslation-estimatedTranslation)/norm(trueTranslation)*100;
-       end
+       end % computePoseError() end
        
        
        %> @brief Returns camera calibration matrix
@@ -394,10 +434,10 @@ classdef Camera < handle
        %> @param algorithm Name of the PnP Algorithm
        function setPnPAlgorithm(this,algorithm_)
            this.pnpAlgorithm = PnPAlgorithm(this.pointCloud3D, this.pointCloud2D, algorithm_);
-       end
+       end % setPnPAlgorithm() end
        
        
-       %> @brief getPose() returns true and estimated pose of a Camera object
+       %> @brief Gets true and estimated pose of a Camera object
        %>
        %> @param this Pointer to Camera object
        %>
@@ -409,8 +449,10 @@ classdef Camera < handle
        end % getPose() end
        
        
+       %> @brief Plots the confidence interval of each point
+       %>
+       %> @param this Pointer to this object
        function plotConfidenceIntervals(this)
-
            for i = 1:this.pointCloud3D.numberOfPoints
                [x, y, z] = ellipsoid(this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(1),...
                    this.pointCloud3D.pointsIn3D(i).trueCoordinatesInWorldFrame(2),...
@@ -428,7 +470,6 @@ classdef Camera < handle
                 drawnow
                hold on
            end
-
-       end
+       end % plotConfidenceIntervals() end
    end % methods end
 end % classdef end

@@ -1,16 +1,9 @@
-% =========================================================================
-%> @brief Class LineIn3D
-%>
-%> 
-%>
-%> 
-%>
-% =========================================================================
+%> @brief LineIn3D Class to store 3D line information
 classdef LineIn3D < handle
     properties
         % Two points represent a line
-        startPoint@PointIn3D            %> @param
-        endPoint@PointIn3D              %> @param
+        startPoint@PointIn3D            %> @param startPoint Starting point of 3D line, of type PointIn3D
+        endPoint@PointIn3D              %> @param endPoint Ending point of 3D line, of type PointIn3D
         
         % Noise parameters
         mean;                           %> @param mean Vector with means for the noise of the 3D line
@@ -35,10 +28,10 @@ classdef LineIn3D < handle
         end % Constructor LineIn3D end
         
         
-        %> @brief
+        %> @brief Sets noise mean of this LineIn3D
         %>
-        %> @param this
-        %> @param mean
+        %> @param this Pointer to this object
+        %> @param mean Mean of noise
         function setMean(this, mean)
             this.mean = mean;
             this.startPoint.setMean(mean);
@@ -46,10 +39,10 @@ classdef LineIn3D < handle
         end % setMean() end
         
         
-        %> @brief
+        %> @brief Sets noise variance of this LineIn3D
         %>
-        %> @param this
-        %> @param variance
+        %> @param this Pointer to this object
+        %> @param variance Variance of noise
         function setVariance(this, variance)
             this.variance = variance;
             this.startPoint.setVariance(variance);
@@ -57,9 +50,9 @@ classdef LineIn3D < handle
         end % setVariance() end
         
         
-        %> @brief
+        %> @brief Gets the starting point of this LineIn3D
         %>
-        %> @param this Pointer to object
+        %> @param this Pointer to this object
         function [trueCoordinatesInWorldFrame, noisyCoordinatesInWorldFrame, trueCoordinatesInCameraFrame, noisyCoordinatesInCameraFrame] = getStartingPoint(this)
             % Get starting points of line
             trueCoordinatesInWorldFrame = this.startPoint.trueCoordinatesInWorldFrame;
@@ -69,9 +62,9 @@ classdef LineIn3D < handle
         end % getStartingPoint() end
         
         
-        %> @brief
+        %> @brief Gets the ending point of this LineIn3D
         %>
-        %> @param this Pointer to object
+        %> @param this Pointer to this object
         function [trueCoordinatesInWorldFrame, noisyCoordinatesInWorldFrame, trueCoordinatesInCameraFrame, noisyCoordinatesInCameraFrame] = getEndPoint(this)
             % Get end points of line
             trueCoordinatesInWorldFrame = this.endPoint.trueCoordinatesInWorldFrame;
@@ -81,9 +74,9 @@ classdef LineIn3D < handle
         end % getEndPoint() end
         
         
-        %> @brief
+        %> @brief Gets the direction (from starting to ending point) of this LineIn3D
         %>
-        %> @param this Pointer to object
+        %> @param this Pointer to this object
         function [trueDirectionInWorldFrame, noisyDirectionInWorldFrame, trueDirectionInCameraFrame, noisyDirectionInCameraFrame] = getDirectionOfLine(this)
             % Get direction of all point doubles, r_AB = r_B - r_A
             trueDirectionInWorldFrame = this.endPoint.trueCoordinatesInWorldFrame - this.startPoint.trueCoordinatesInWorldFrame;
@@ -93,10 +86,10 @@ classdef LineIn3D < handle
         end % getDirectionOfLine() end
         
         
-        %> @brief
+        %> @brief Computes the line coordinates w.r.t. the camera frame
         %>
-        %> @param this
-        %> @param truePose
+        %> @param this Pointer to this object
+        %> @param truePose True pose of the camera
         function computeCameraFrameCoordinates(this, truePose)
             % Transform into camera frame coordinates
             this.startPoint.computeCameraFrameCoordinates(truePose);
@@ -104,9 +97,9 @@ classdef LineIn3D < handle
         end % computeCameraFrameCoordinates() end
         
         
-        %> @brief
+        %> @brief Adds noise to this LineIn3D
         %>
-        %> @param this
+        %> @param this Pointer to this object
         %> @param T_CW Transformation (in R^(3x4)) from world frame into the camera frame
         function addNoise(this, T_CW)
             % Add noise to start and end point
@@ -115,9 +108,9 @@ classdef LineIn3D < handle
         end % addNoise() end
         
         
-        %> @brief
+        %> @brief Plots the ground truth of 3D line
         %>
-        %> @param
+        %> @param this Pointer to this object
         function plotTrueLine(this)
             % Concatenate the starting and end point
             X = [this.startPoint.trueCoordinatesInWorldFrame(1), this.endPoint.trueCoordinatesInWorldFrame(1)];
@@ -129,9 +122,9 @@ classdef LineIn3D < handle
         end % plotTrueLine() end
         
         
-        %> @brief
+        %> @brief Plots the noise corrupted 3D line (measured line)
         %>
-        %> @param
+        %> @param this Pointer to this object
         function plotNoisyLine(this)
             % Concatenate the starting and end point
             X = [this.startPoint.noisyCoordinatesInWorldFrame(1), this.endPoint.noisyCoordinatesInWorldFrame(1)];

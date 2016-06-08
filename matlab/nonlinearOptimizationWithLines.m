@@ -1,3 +1,12 @@
+%> @brief Optimizes camera pose estimate with initial guess using 3D-2D point and line correspondences
+%>
+%> @param initialEstimation Initial Pose Estimate for optimization algorithm
+%> @param pointCloud3D A 3D pointcloud storing 3D points
+%> @param pointCloud2D A 2D pointcloud storing 2D points
+%> @param focalLength Focal length of the camera lense
+%>
+%> @retval optimizedEstimatedPose Optimized pose estimate of a camera
+%> @retval confidenceMatrix
 function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimizationWithLines(initialEstimation, pointCloud3D, pointCloud2D, lineCloud3D, lineCloud2D, focalLength)
 
 % Set parameters
@@ -173,8 +182,21 @@ t = [pose(1); pose(2); pose(3)];
 
 optimizedEstimatedPose = [R t];
 confidenceMatrix = inv(J_p'*J_p);
-return
+end
 
+
+%> @brief Comptutes the Jacobian of the point reprojection error w.r.t. the camera pose estimate
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param pointCloud3D A 3D pointcloud storing all 3D points
+%> @param f Focal length of the camera lense
+%>
+%> @retval J_p Jacobian of the reprojection error
 function J_p = jacobian_p(x,y,z,alpha,beta,gamma,pointCloud3D,f)
     J_p = zeros(2*pointCloud3D.numberOfPoints, 6);
     for j = 1:pointCloud3D.numberOfPoints
@@ -186,8 +208,22 @@ function J_p = jacobian_p(x,y,z,alpha,beta,gamma,pointCloud3D,f)
                    [                                                                           0, f/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)), -(f*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, - (f*(z2j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z3j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma))))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) - (f*(z2j*cos(alpha)*cos(beta) - z3j*cos(beta)*sin(alpha))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, (f*(z3j*cos(alpha)*cos(beta)*sin(gamma) - z1j*sin(beta)*sin(gamma) + z2j*cos(beta)*sin(alpha)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) + (f*(z1j*cos(beta) + z3j*cos(alpha)*sin(beta) + z2j*sin(alpha)*sin(beta))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2,  (f*(z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))]];
         J_p(2*(j-1)+1:2*(j-1)+2,:) = J_pj;
     end
-return
+end
 
+
+%> @brief Comptutes the Jacobian of the line reprojection error w.r.t. the camera pose estimate
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param linecloud3D A 3D linecloud storing all 3D lines
+%> @param linecloud2D A 2D linecloud storing all 2D lines
+%> @param f Focal length of the camera lense
+%>
+%> @retval J_l Jacobian of the reprojection error
 function J_l = jacobian_l(x,y,z,alpha,beta,gamma,lineCloud3D,lineCloud2D,f)
     J_l = zeros(lineCloud3D.numberOfLines, 6);
     for j = 1:lineCloud3D.numberOfLines
@@ -264,8 +300,15 @@ function J_l = jacobian_l(x,y,z,alpha,beta,gamma,lineCloud3D,lineCloud2D,f)
         
         J_l(j,:) = J_lj;
     end
-return
+end
 
+
+%> @brief Computes the line reprojection error
+%>
+%> @param matrixOf2Dlines Matrix of 2D line coordinates
+%> @param matrixOfReprojectedLines Matrix of reprojected 2D line coordinates
+%>
+%> @retval matrixOfLineReprojectionError Matrix of reprojection error
 function matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2DLines, matrixOfReprojectedLines)
     matrixOfLineReprojectionError = zeros(size(matrixOf2DLines,1)/2,1);
     for j = 1:size(matrixOf2DLines,1)/2;
@@ -290,13 +333,41 @@ function matrixOfLineReprojectionError = computeLineReprojectionError(matrixOf2D
         l = sqrt((o1x - o2x)^2 + (o1y - o2y)^2);
         matrixOfLineReprojectionError(j) = l/3*(h1^2 + h1*h2 + h2^2);
     end
-return
+end
 
+
+%> @brief Reprojects a 3D point onto the image plane w.r.t. the camera pose
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param z1j
+%> @param z2j
+%> @param z3j
+%> @param f Focal length of the camera lense
+%>
+%> @retval reprojectedPoint Vector with 2D coordinates of corresponding 3D point
 function reprojectedPoint = reprojectPoint(x,y,z,alpha,beta,gamma,z1j,z2j,z3j,f)
     reprojectedPoint = [    f / (-sin(beta)*z1j + cos(beta)*sin(alpha)*z2j + cos(alpha)*cos(beta)*z3j + z) * (cos(beta)*cos(gamma)*z1j + (cos(gamma)*sin(alpha)*sin(beta)-cos(alpha)*sin(gamma))*z2j + (sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta))*z3j + x);...
                             f / (-sin(beta)*z1j + cos(beta)*sin(alpha)*z2j + cos(alpha)*cos(beta)*z3j + z) * (cos(beta)*sin(gamma)*z1j + (cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma))*z2j + (cos(alpha)*sin(beta)*sin(gamma) - cos(gamma)*sin(alpha))*z3j + y)];
-return
+end
 
+
+%> @brief Reprojects 3D points onto the image plane w.r.t. the camera pose
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param pointCloud3D A 3D pointcloud storing all 3D points
+%> @param f Focal length of the camera lense
+%>
+%> @retval reprojectedPoints Matrix with 2D coordinates of corresponding 3D points
 function reprojectedPoints = reprojectPoints(x,y,z,alpha,beta,gamma,pointCloud3D,f)
     reprojectedPoints = zeros(2*pointCloud3D.numberOfPoints, 1);
     for j = 1:pointCloud3D.numberOfPoints
@@ -306,8 +377,21 @@ function reprojectedPoints = reprojectPoints(x,y,z,alpha,beta,gamma,pointCloud3D
         reprojectedCoordinates_j = reprojectPoint(x,y,z,alpha,beta,gamma,z1j,z2j,z3j,f);
         reprojectedPoints(2*(j-1)+1:2*(j-1)+2) = reprojectedCoordinates_j;
     end
-return
+end
 
+
+%> @brief Reprojects a 3D linecloud to the corresponding 2D lines in the image plane w.r.t. the camera 
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param lineCloud3D A 3D linecloud storing all 3D lines
+%> @param f Focal length of the camera lense
+%>
+%> @retval reprojectedLines Matrix with 2D coordinates of corresponding 3D line
 function reprojectedLines = reprojectLines(x,y,z,alpha,beta,gamma,lineCloud3D,f)
     reprojectedLines = zeros(2*lineCloud3D.numberOfLines, 2);
     for j = 1:lineCloud3D.numberOfLines
@@ -322,4 +406,4 @@ function reprojectedLines = reprojectLines(x,y,z,alpha,beta,gamma,lineCloud3D,f)
         reprojectedLines(2*(j-1)+1:2*(j-1)+2, 1) = reprojectedStartPoint_j;
         reprojectedLines(2*(j-1)+1:2*(j-1)+2, 2) = reprojectedEndPoint_j;
     end
-return
+end % reprojectLines() end

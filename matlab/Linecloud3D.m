@@ -1,17 +1,10 @@
-% =========================================================================
-%> @brief Class Linecloud3D
-%>
-%> 
-%>
-%> 
-%>
-% =========================================================================
+%> @brief Linecloud3D Class to store a 3D linecloud
 classdef Linecloud3D < handle
     properties
-        linesIn3D@LineIn3D
-        numberOfLines
-        shape
-        scale
+        linesIn3D@LineIn3D          %> @param linesIn3D Array of type LineIn3D to store lines of the 3D linecloud
+        numberOfLines               %> @param numberOfLines Number of lines in the 3D linecloud
+        shape                       %> @param shape Shape of the pointcloud. Current options: cubic, spherical, planar
+        scale                       %> @param scale Absolute scale of the simulation
     end % properties end
     
     methods
@@ -67,10 +60,10 @@ classdef Linecloud3D < handle
         end % Constructor Linecloud3D end
         
         
-        %> @brief
+        %> @brief Computes the line coordinates w.r.t. the camera frame
         %>
-        %> @param this
-        %> @param truePose
+        %> @param this Pointer to this object
+        %> @param truePose True pose of camera as [R | t]
         function computeCameraFrameCoordinates(this, truePose)
             % Fill in the true coordinates in camera frame
             for i = 1:this.numberOfLines
@@ -79,10 +72,10 @@ classdef Linecloud3D < handle
         end % computeCameraFrameCoordinates() end
         
         
-        %> @brief
+        %> @brief Adds noise to all lines stored in this linecloud
         %>
-        %> @param this
-        %> @param T_CW
+        %> @param this Pointer to this object
+        %> @param T_CW Transformation matrix from world frame to camera frame
         function addNoiseToAllLines(this, T_CW)
             for i = 1:this.numberOfLines
                 this.linesIn3D(i).addNoise(T_CW);
@@ -90,9 +83,9 @@ classdef Linecloud3D < handle
         end % addNoiseToAllLines() end
         
         
-        %> @brief
+        %> @brief Plots the ground truth linecloud
         %>
-        %> @param this
+        %> @param this Pointer to this object
         function plotTrueLinecloud(this)
             % Plot every line seperately
             for i = 1:this.numberOfLines
@@ -101,9 +94,9 @@ classdef Linecloud3D < handle
         end % plotTrueLinecloud() end
         
         
-        %> @brief
+        %> @brief Plots the noisy linecloud (measured lines)
         %>
-        %> @param this
+        %> @param this Pointer to this object
         function plotNoisyLinecloud(this)
             % Plot every line seperately
             for i = 1:this.numberOfLines
@@ -111,11 +104,12 @@ classdef Linecloud3D < handle
             end
         end % plotTrueNoisycloud() end
         
-        %> @brief Return number of lines
+        
+        %> @brief Returns number of lines stored in this linecloud
         %>
         %> @param this Pointer to this linecloud
         %>
-        %> retval numberOfPoints The number of points in this pointcloud
+        %> @retval numberOfPoints The number of points in this pointcloud
         function numberOfPoints = getNumberOfLines(this)
             numberOfPoints = this.numberOfLines;
         end

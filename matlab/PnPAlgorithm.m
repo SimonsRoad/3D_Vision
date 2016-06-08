@@ -1,25 +1,18 @@
+%> @brief PnPAlgorithm Class solves the pose estimation problem
 classdef PnPAlgorithm < handle
-    
-    % Properties
-    
     properties
-        
-        numberOfPoints;             %> @param numberOfPoints Number of points
-        algorithm;                  %> @param algorithm Name of the algorithm for pose estimation
-        matrixOfNoisy3DPoints
-        matrixOfNoisy2DPoints
-        matrixOfHomogeneousNoisy3DPoints       %> @param matrixOfNoisy3DPoints The noisy 3D points *in world frame* in matrix form
-        matrixOfHomogeneousNoisy2DPoints       %> @param matrixOfNoisy2DPoints The noisy 2D points *in camera frame *in matrix form
+        numberOfPoints;                         %> @param numberOfPoints Number of points
+        algorithm;                              %> @param algorithm Name of the algorithm for pose estimation
+        matrixOfNoisy3DPoints                   %> @param matrixOfNoisy3Dpoints The noisy 3D points *in world frame* in matrix form
+        matrixOfNoisy2DPoints                   %> @param matrixOfNoisy2Dpoints The noisy 2D points *in camera frame* in matrix form
+        matrixOfHomogeneousNoisy3DPoints        %> @param matrixOfNoisy3DPoints The noisy 3D points *in world frame* in matrix form
+        matrixOfHomogeneousNoisy2DPoints        %> @param matrixOfNoisy2DPoints The noisy 2D points *in camera frame* in matrix form
 
         % Helpers
-        meanOfNoisy3DPoints
-    end
-    
-    % Methods
+        meanOfNoisy3DPoints                     %> @param meanOfNoisy3Dpoints Noise mean of noisy 3D points
+    end % properties end
     
     methods
-        
-
         %> @brief Constructor of PnPAlgorithm class
         %>
         %> @param pointCloud3D_ 3D Pointcloud
@@ -54,10 +47,16 @@ classdef PnPAlgorithm < handle
 %                     obj.matrixOfNoisy3DPoints(:,i) = obj.matrixOfNoisy3DPoints(:,i)-obj.meanOfNoisy3DPoints;
 %                 end
             end
-        end
+        end % PnPAlgorithm() end
+        
         
         %> @brief
         %>
+        %> @param this Pointer to this object
+        %> @param intrinsicMatrix
+        %>
+        %> @retval R Orientation of the camera in the world frame
+        %> @retval t Translation vector of the camera w.r.t. the camera frame
         function [R,t] = estimatePose(this, intrinsicMatrix)
             if strcmp(this.algorithm, 'EPNP')
                 addpath('EPnP')
@@ -85,19 +84,17 @@ classdef PnPAlgorithm < handle
                 disp('Using RPNP for pose estimation.')
                 [R,t] = RPnP(this.matrixOfNoisy3DPoints,this.matrixOfNoisy2DPoints/intrinsicMatrix(1,1));
             end
-        end
+        end % estimatePose() end
         
-        %> @brief
+        
+        %> @brief Adds noise to all points
         %>
-        %> @param this
-        %> @param T_WC
+        %> @param this Pointer to this object
+        %> @param T_WC Transformation matrix from camera frame into world frame
         function addNoiseToAllPoints(this,T_WC)
             for i = 1:this.numberOfPoints
                 this.pointsIn3D(i).addNoise(T_WC);
             end
-        end
-        
-
-        
-    end
-end
+        end % addNoiseToAllPoints() end
+    end % methods end
+end % classdef end

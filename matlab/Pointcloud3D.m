@@ -1,22 +1,13 @@
+%> @brief Pointcloud3D Class to store all the 3D points of the scene
 classdef Pointcloud3D < handle
-    
-    % Properties
-    
     properties
-                
         pointsIn3D@PointIn3D;   %> @param pointsIn3D@PointIn3D Array of type PointIn3D to store the points of the 3D pointcloud
         numberOfPoints;         %> @param numberOfPoints Number of points in the 3D pointcloud
         scale;                  %> @param scale Absolute scale of the simulation
         shape;                  %> @param shape Shape of the pointcloud. Current options: cubic, spherical, planar
-
-        
-    end
-    
-    % Methods
+    end % properties end
     
     methods
-        
-
         %> @brief Constructor of Pointcloud3D class
         %>
         %> @param numberOfPoints_ Number of points in the 3D pointcloud
@@ -67,37 +58,42 @@ classdef Pointcloud3D < handle
                 obj.pointsIn3D(i).setMean(mean_);
                 obj.pointsIn3D(i).setVariance(variance_);
             end
-        end
+        end % Pointcloud3D() end
         
         
+        %> @brief Projects a 3D pointcloud onto the image plane
+        %>
+        %> @param pointCloud3D A 3D pointcloud with points, of type Pointcloud3D
+        %> @param focalLengthMatrix The focal length matrix F = diag(f, f, 1)
+        %>
+        %> @retval pointCloud2D A matrix with corresponding 2D points
         function pointCloud2D = ProjectionFrom3Dto2D(pointCloud3D, focalLengthMatrix)
-            
             numberofpoints = pointCloud3D.getNumberOfPoints();
+            
             % Construct all the 2D correspondences with a loop
             pointCloud2D = [];
             for i = 1:numberofpoints
                 point3D = pointCloud3D.pointsIn3D(i);
                 point2D = PointFrom3Dto2D(point3D, focalLengthMatrix);
                 pointCloud2D = [pointCloud2D; point2D(1) point2D(2) point2D(3)];  
-                
             end % for loop end
-            
-        end
+        end % ProjectionFrom3Dto2D() end
         
         
-        %> @brief
+        %> @brief Adds noise to all points in this object
         %>
-        %> @param this
-        %> @param T_WC
+        %> @param this Pointer to this object
+        %> @param T_WC Transformation matrix from camera frame into the world frame
         function addNoiseToAllPoints(this,T_WC)
             for i = 1:this.numberOfPoints
                 this.pointsIn3D(i).addNoise(T_WC);
             end
-        end
+        end % addNoiseToAllPoints() end
 
+        
         %> @brief Plot the points in their true coordinates
         %>
-        %> @param this Pointer to this pointcloud
+        %> @param this Pointer to this object
         function plotTruePointcloud(this)
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
@@ -110,27 +106,26 @@ classdef Pointcloud3D < handle
             end
             
             plot3(X',Y',Z','.','markers',10,'Color','blue')
-
-        end
+        end % plotTruePointcloud() end
         
         
-        %> @brief
+        %> @brief Computes the coordinates w.r.t. the camera frame of all 3D points in this Pointcloud3D
         %>
-        %> @param this
-        %> @param truePose
+        %> @param this Pointer to this object
+        %> @param truePose The true pose of the camera as [R_CW | t]
         function computeCameraFrameCoordinates(this, truePose)
             % Fill in the true coordinates in camera frame
            for i = 1:this.numberOfPoints
                this.pointsIn3D(i).computeCameraFrameCoordinates(truePose);
            end
-        end
+        end % computeCameraFrameCoordinates() end
 
+        
         %> @brief Plot the points in their noisy coordinates
         %>
         %> @param this Pointer to this pointcloud
         %> @param plotConfidenceInterval Option wheter to plot the confidence intervals for the respective points
         function plotNoisyPointcloud(this,plotConnectingLines)
-
             X = zeros(this.numberOfPoints,1);
             Y = zeros(this.numberOfPoints,1);
             Z = zeros(this.numberOfPoints,1);
@@ -143,7 +138,6 @@ classdef Pointcloud3D < handle
             
             plot3(X',Y',Z','.','markers',10,'Color','red')
 
-            
             if strcmp(plotConnectingLines,'true')
                 hold on
                 for i = 1:this.numberOfPoints
@@ -151,16 +145,16 @@ classdef Pointcloud3D < handle
                     line(pts(:,1),pts(:,2),pts(:,3),'Color','red','LineWidth',0.1)
                 end
             end
-        end
+        end % plotNoisyPointcloud() end
                 
         
         %> @brief Return number of points
         %>
         %> @param this Pointer to this pointcloud
         %>
-        %> retval numberOfPoints The number of points in this pointcloud
+        %> @retval numberOfPoints The number of points in this pointcloud
         function numberOfPoints = getNumberOfPoints(this)
             numberOfPoints = this.numberOfPoints;
-        end
-    end
-end
+        end % getNumberOfPoints() end
+    end % methods end
+end % classdef end

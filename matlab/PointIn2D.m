@@ -1,12 +1,7 @@
-% =========================================================================
-%> @brief Class PointIn2D stores projected coordinates of a corresponding PointIn3D and adds pixel noise to itself
-%>
-%>
-%>
-% =========================================================================
+%> @brief PointIn2D Class stores projected coordinates of a corresponding
+%> Pointcloud3D and adds pixel noise to itself
 classdef PointIn2D < handle
     properties
-        
         u
         v
         w
@@ -15,8 +10,8 @@ classdef PointIn2D < handle
         projectedCoordinates                                    %> @param projectedCoordinates Coordinates of the 3D to 2D projection
         homogeneousProjectedCoordinates                         %> @param homogeneousProjectedCoordinates Homogeneous coordinates of the 3D to 2D projection
         
-        distortedCoordinatesInCameraFrame                  %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
-        homogeneousDistortedCoordinatesInCameraFrame       %> @param distortedNoisyCoordinatesInCameraFrame Homogeneous distorted u-v coordinates
+        distortedCoordinatesInCameraFrame                       %> @param distortedNoisyCoordinatesInCameraFrame Distorted u-v coordinates
+        homogeneousDistortedCoordinatesInCameraFrame            %> @param distortedNoisyCoordinatesInCameraFrame Homogeneous distorted u-v coordinates
         
         homogeneousDistortedPixelCoordinates                    %> @param homogeneousDistortedPixelCoordinates Homogeneous distorted pixel coordinates
         distortedPixelCoordinates                               %> @param distortedPixelCoordinates Distorted pixel coordinates (x,y)
@@ -27,8 +22,8 @@ classdef PointIn2D < handle
         backProjectionFromPixelToImageCoordinates               %> @param backProjectionFromPixelToImageCoordinates after adding pixel noise we transform pixel coord. back to euclidean image coord.
         homogeneousBackProjectionFromPixelToImageCoordinates    %> @param homogeneousBackProjectionFromPixelToImageCoordinates transformation from pixel to homogeneous image coordinates after pixel noise
         
-        undistortedCoordinatesInCameraFrame
-        homogeneousUndistortedCoordinatesInCameraFrame
+        undistortedCoordinatesInCameraFrame                     %> @param undistortedCoordinatesInCameraFrame
+        homogeneousUndistortedCoordinatesInCameraFrame          %> @param homogeneousUndistortedCoordinatesInCameraFrame
         
         % Noise in pixel space
         pixelNoiseMean                                          %> @param Vector of means for the anisotropic Gaussian noise of the 2D point
@@ -48,8 +43,6 @@ classdef PointIn2D < handle
         %> @param cameraTruePose Ground truth of camera
         %>
         %> @retval obj An object of class PointIn2D
-
-        % First, do the coordinates in pixel space
         function obj = PointIn2D(u, v, w)
             obj.u = u;
             obj.v = v;
@@ -59,18 +52,15 @@ classdef PointIn2D < handle
             obj.homogeneousProjectedCoordinates = obj.homogeneousProjectedCoordinates / obj.homogeneousProjectedCoordinates(3);
             % Get euclidean coordinates from homogeneous coordinates
             obj.projectedCoordinates = obj.homogeneousProjectedCoordinates(1:2);
-            
         end % Constructor end
         
         
-        % 1.1 add distortion
-        %> @brief Add distortion to u,v coordinates
+        %> @brief Adds distortion to u,v coordinates
         %>
         %> @param this Pointer to object
         %> @param kappa Radial distortion parameters 3-dimensional vector
         %> @param p Tangential distortion parameters 2-dimensional vector
         function addDistortion(this, kappa, p)
-      
            uvCoordinates = this.projectedCoordinates;
            %centerOfDistortion = [0;0];
            radiusSquared = uvCoordinates(1)^2 + uvCoordinates(2)^2;
@@ -81,12 +71,14 @@ classdef PointIn2D < handle
            this.homogeneousDistortedCoordinatesInCameraFrame = [ this.distortedCoordinatesInCameraFrame(1); this.distortedCoordinatesInCameraFrame(2);1];
         end % addDistortion() end
         
-        % 1.2 Calculate Coefficients kappa_ and p_ for undistortion
-        %> @brief calculate Undistortion Coefficients
+        
+        %> @brief Calculates Undistortion Coefficients
         %>
         %> @param this Pointer to object
+        %>
+        %> @retval b_
+        %> @retval A_
         function [b_, A_] = createLSforUndistortion(this)
-      
            uvCoordinates = this.projectedCoordinates;
            %centerOfDistortion = [0;0];
            uvCoordinates_ = this.distortedCoordinatesInCameraFrame;
@@ -96,13 +88,10 @@ classdef PointIn2D < handle
                uvCoordinates(2)/uvCoordinates_(2) - 1];
            A_ = [radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(2) radiusSquared_/uvCoordinates_(1)+2*uvCoordinates_(1);...
                radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(1) radiusSquared_/uvCoordinates_(2)+2*uvCoordinates_(2)];
- 
         end % calculateUndistortionCoefficients() end
         
         
-        
-        % 2. calculate homogeneous distorted points in xy (pixel) coordinates 
-        %> @brief Calculate the homogeneous distorted points in uv coordinates
+        %> @brief Calculates the homogeneous distorted points in uv coordinates
         %>
         %> @param this Pointer to PointIn2D object 
         %> @param imagetoPixelCoordinatesTrafo [camera.kx, camera.skew, camera.x0; 0, camera.ky, camera.y0; 0, 0, 1];
@@ -112,24 +101,21 @@ classdef PointIn2D < handle
         end % calculateHomoegeneousDistortedPixelCoordinates() end 
 
         
-        % 3. calculate given homogeneous to euclidean distorted points in uv coordinates
-        %> @brief Calculate the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
+        %> @brief Calculates the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
         %>
         %> @param this Pointer to object
-
         function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
             this.distortedPixelCoordinates = this.homogeneousDistortedPixelCoordinates(1:2);
         end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
 
-        % 4. add pixel noise
-        %> @brief Add pixel noise to this 2D point
+        
+        %> @brief Adds pixel noise to this 2D point
         %>
         %> @param this Pointer to object
         %> @param noiseType String type of noise
         %> @param mean Mean of gaussian distribution in x- and y-direction
         %> @param variance Variance of gaussian distribution in x- and y-direction
         function addPixelNoise(this, noiseType, mean, variance)
-            
             this.pixelNoiseMean = mean;
             this.pixelNoiseVariance = variance;
             
@@ -154,8 +140,8 @@ classdef PointIn2D < handle
             this.noisyPixelCoordinates = this.homogeneousNoisyPixelCoordinates(1:2);
         end % addPixelNoise() end
         
-        % 5. back projection to image coordinates
-        %> @brief Transform from pixel coordinates (x,y) to image coordinates (u,v)
+        
+        %> @brief Transforms from pixel coordinates (x,y) to image coordinates (u,v)
         %> 
         %> @param this Pointer to object
         %> @param calibrationMatrix calibration matrix of camera
@@ -164,14 +150,13 @@ classdef PointIn2D < handle
            this.backProjectionFromPixelToImageCoordinates = this.homogeneousBackProjectionFromPixelToImageCoordinates(1:2);
         end % transformFromPixelToImage() end
         
-        % 6. undistortion
-        %> @brief undistort in u,v coordinates
+        
+        %> @brief Nndistorts in u,v coordinates
         %>
         %> @param this Pointer to object
         %> @param kappa Radial distortion parameters 3-dimensional vector
         %> @param p Tangential distortion parameters 2-dimensional vector
         function undistortion(this, kappa, p)
-      
            uvCoordinates = this.backProjectionFromPixelToImageCoordinates;
            %centerOfDistortion = [0;0];
            radiusSquared = uvCoordinates(1)^2 + uvCoordinates(2)^2;
@@ -182,54 +167,33 @@ classdef PointIn2D < handle
            this.homogeneousUndistortedCoordinatesInCameraFrame = [ this.undistortedCoordinatesInCameraFrame(1); this.undistortedCoordinatesInCameraFrame(2);1];
         end % undistortion() end
         
+        
         %> @brief Returns coordinates of this object of PointIn2D
         %>
         %> @param this Pointer to object
         %>
         %> @retval projCoord Projected coordinates of 2D point
         %> @retval homProjCoord Homogeneous coordinates of 2D point
-        %> @retval noisyCoord Noisy coordinates of 2D point
-        %> @retval homNoisyCoord Homogeneous coordinates of noisy 2D point
         function [projCoord, homProjCoord] = getCoordinates(this)
             projCoord = this.projectedCoordinates;
             homProjCoord = this.homogeneousProjectedCoordinates;
         end % getCoordinates() end
 
+        
+        %> @brief Sets the mean of this PointIn2D
+        %>
         %> @param this Pointer to object
         %> @param mean Vector of means, in camera frame
         function setMean(this, mean)
             this.pixelNoiseMean = mean;
         end % setMean() end
         
+        
+        %> @brief Sets the variance of this PointIn2D
+        %>
         %> @param mean Vector of variances
         function setVariance(this, variance)
             this.pixelNoiseVariance = variance;
         end % setVariance() end
-
-        %> @brief Helper function
-        %>
-        %> @param this Pointer to PointIn2D object
-        %> @param variance Variance of gaussian distribution
-        %> @param pixelWindowInterval Half interval in pixel of window
-        function discreteRandomVariable = generateDRV(this, variance, pixelWindowInterval)
-            % Generate random uniformly distributed variable
-            u = rand();
-            
-            % Desired probability density function
-            pdf = makedist('Normal',0,variance);
-            
-            % Cumulative distribution function
-            F = cdf(pdf,-pixelWindowInterval:pixelWindowInterval);
-            
-            % Find discrete random variable
-            DRV = find(F <= u);
-            
-            % find last index at which F <= u and u < F
-            if (isempty(DRV))
-                discreteRandomVariable = - pixelWindowInterval;
-            else
-                discreteRandomVariable = DRV(end) - pixelWindowInterval;
-            end
-        end % generateDRV() end
     end % methods end
 end % classdef end

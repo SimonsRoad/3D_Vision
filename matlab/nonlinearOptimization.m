@@ -1,3 +1,12 @@
+%> @brief Optimize pose estimate with initial guess using 3D-2D point correspondences
+%>
+%> @param initialEstimation Initial Pose Estimate for optimization algorithm
+%> @param pointCloud3D A 3D pointcloud storing 3D points
+%> @param pointCloud2D A 2D pointcloud storing 2D points
+%> @param focalLength Focal length of the camera lense
+%>
+%> @retval optimizedEstimatedPose Optimized pose estimate of a camera
+%> @retval confidenceMatrix
 function [optimizedEstimatedPose, confidenceMatrix] = nonlinearOptimization(initialEstimation, pointCloud3D, pointCloud2D, focalLength)
 
 % Set parameters
@@ -97,8 +106,21 @@ t = [pose(1); pose(2); pose(3)];
 
 optimizedEstimatedPose = [R t];
 confidenceMatrix = inv(J'*J);
-return
+end % nonlinearOptimization() end
 
+
+%> @brief Comptutes the Jacobian of the point reprojection error w.r.t. the camera pose estimate
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param pointCloud3D A 3D pointcloud storing all 3D points
+%> @param f Focal length of the camera lense
+%>
+%> @retval J Jacobian of the reprojection error
 function J = jac(x,y,z,alpha,beta,gamma,pointCloud3D,f)
     J = zeros(2*pointCloud3D.numberOfPoints, 6);
     for j = 1:pointCloud3D.numberOfPoints
@@ -110,8 +132,21 @@ function J = jac(x,y,z,alpha,beta,gamma,pointCloud3D,f)
                   [                                                                           0, f/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)), -(f*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, - (f*(z2j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z3j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma))))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) - (f*(z2j*cos(alpha)*cos(beta) - z3j*cos(beta)*sin(alpha))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2, (f*(z3j*cos(alpha)*cos(beta)*sin(gamma) - z1j*sin(beta)*sin(gamma) + z2j*cos(beta)*sin(alpha)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha)) + (f*(z1j*cos(beta) + z3j*cos(alpha)*sin(beta) + z2j*sin(alpha)*sin(beta))*(y + z2j*(cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma)) - z3j*(cos(gamma)*sin(alpha) - cos(alpha)*sin(beta)*sin(gamma)) + z1j*cos(beta)*sin(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))^2,  (f*(z3j*(sin(alpha)*sin(gamma) + cos(alpha)*cos(gamma)*sin(beta)) - z2j*(cos(alpha)*sin(gamma) - cos(gamma)*sin(alpha)*sin(beta)) + z1j*cos(beta)*cos(gamma)))/(z - z1j*sin(beta) + z3j*cos(alpha)*cos(beta) + z2j*cos(beta)*sin(alpha))]];
         J(2*(j-1)+1:2*(j-1)+2,:) = J_j;
     end
-return
+end % jac() end
 
+
+%> @brief Reprojects 3D points onto the image plane w.r.t. the camera pose
+%>
+%> @param x 1st coordinate of camera position, w.r.t. the world frame
+%> @param y 2nd coordinate of camera position, w.r.t. the world frame
+%> @param z 3rd coordinate of camera position, w.r.t. the world frame
+%> @param alpha Euler angle rotation in x-direction, w.r.t. the world frame
+%> @param beta Euler angle rotation in y-direction, w.r.t. the world frame
+%> @param gamma Euler angle rotation in z-direction, w.r.t. the world frame
+%> @param pointCloud3D A 3D pointcloud storing all 3D points
+%> @param f Focal length of the camera lense
+%>
+%> @retval reprojectedCoordinates Matrix with 2D coordinates of corresponding 3D points
 function reprojectedCoordinates = reproject(x,y,z,alpha,beta,gamma,pointCloud3D,f)
     reprojectedCoordinates = zeros(2*pointCloud3D.numberOfPoints, 1);
     for j = 1:pointCloud3D.numberOfPoints
@@ -122,5 +157,4 @@ function reprojectedCoordinates = reproject(x,y,z,alpha,beta,gamma,pointCloud3D,
                                         f / (-sin(beta)*z1j + cos(beta)*sin(alpha)*z2j + cos(alpha)*cos(beta)*z3j + z) * (cos(beta)*sin(gamma)*z1j + (cos(alpha)*cos(gamma) + sin(alpha)*sin(beta)*sin(gamma))*z2j + (cos(alpha)*sin(beta)*sin(gamma) - cos(gamma)*sin(alpha))*z3j + y)];
         reprojectedCoordinates(2*(j-1)+1:2*(j-1)+2) = reprojectedCoordinates_j;
     end
-return
-
+end % reproject() end

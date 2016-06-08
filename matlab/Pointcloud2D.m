@@ -1,51 +1,23 @@
-% =========================================================================
-%> @brief
-%>
-%>
-%>
-% =========================================================================
+%> @brief Pointcloud2D Class stores 2D points
 classdef Pointcloud2D < handle
     properties
         pointsIn2D@PointIn2D                %> @param pointsIn2D Vector of type PointIn2D
         numberOfPoints                      %> @param numberOfPoints Number of points stored in vector pointsIn2D
-    end
+    end % properties end
     
     methods
-        
-        %> @brief Constructor projects a 3D pointcloud to 2D pointcloud based on camera ground truth pose
+        %> @brief Copy Constructor
         %>
-        %> @param pointCloud3D 3D pointcloud
-        %> @param focalLengthMatrix Transformation matrix to the focal plane
-        %> @param cameraTruePose Ground truth pose of a camera
-        %>
-        %> @retval obj array with points in 2D
-%         function obj = Pointcloud2D(pointCloud3D, focalLengthMatrix)
-% 
-%             % Get number of points in pointCloud3D
-%             obj.numberOfPoints = pointCloud3D.getNumberOfPoints();
-%             
-%             % Construct all the 2D correspondences with a loop
-%             for i = 1:obj.numberOfPoints
-%                 point3D = pointCloud3D.pointsIn3D(i);
-%                 point2D = PointFrom3Dto2D(point3D, focalLengthMatrix);
-%                 obj.pointsIn2D(i) = PointIn2D(point2D(1), point2D(2), point2D(3));
-%                 %obj.pointsIn2D(i) = PointIn2D(pointCloud3D.pointsIn3D(i), focalLengthMatrix);
-% 
-%             end % for loop end
-%         end % Constructor end
-        
+        %> @param pointcloud2D Matrix with points in 2D
         function obj = Pointcloud2D(pointcloud2D)
             obj.numberOfPoints = size(pointcloud2D,1);
             for i = 1:obj.numberOfPoints
                 obj.pointsIn2D(i) = PointIn2D(pointcloud2D(i,1), pointcloud2D(i,2), pointcloud2D(i,3));
-                
             end % for loop end
-        
         end % Constructor end
         
         
-        % 1. add distortion
-        %> @brief
+        %> @brief Distorts every point in the 2D image plane
         %>
         %> @param this Pointer to Pointcloud2D object
         %> @param kappa radial distortion paramaeter dim(kappa) = 3
@@ -58,8 +30,7 @@ classdef Pointcloud2D < handle
         end % addDistortion() end
         
         
-        % 2. calculate homogeneous distorted pixel points
-        %> @brief
+        %> @brief Calculates the homogeneous distorted points in uv coordinates
         %>
         %> @param this Pointer to Pointcloud2D object
         %> @param imageToPixelMatrix [this.kx, this.skew, this.x0; 0, this.ky, this.y0; 0, 0, 1];
@@ -71,8 +42,7 @@ classdef Pointcloud2D < handle
         end % calculateHomoegenousDistortedPixelPoints() end
         
         
-        % 3. calculate euclidean distorted pixel points from homoegenous distorted pixel points
-        %> @brief
+        %> @brief Calculates the euclidean distorted points in uv coordinates (given homogeneous distorted pixel points)
         %>
         %> @param this Pointer to Pointcloud2D object
         function setDistortedPixelCoordinatesFromHomogeneousCoordinates(this)
@@ -83,7 +53,6 @@ classdef Pointcloud2D < handle
         end % setDistortedPixelCoordinatesFromHomogeneousCoordinates() end
         
         
-        % 4. add pixel noise
         %> @brief Adds pixel noise to pixel representation of the 2d projected point
         %>
         %> @param this Pointer to Pointcloud2D object
@@ -98,8 +67,7 @@ classdef Pointcloud2D < handle
         end % addPixelNoise() end
         
         
-        % 5. back projection
-        %> @brief
+        %> @brief Backtransforms a pixel coordinates into image plane coordinates
         %>
         %> @param this Pointer to Pointcloud2D object
         %> @param calibrationMatrix calibration matrix
@@ -111,34 +79,35 @@ classdef Pointcloud2D < handle
         end % transformFromPixelToImage() end
         
         
-        % 6. undistortion
-        %> @brief
+        %> @brief Undistorts points in Pointcloud2D
         %>
-        %> @param this Pointer to Pointcloud2D object
+        %> @param this Pointer to this object
         function undistortPointCloud2D(this)
-            
             % for every 2D point
             A=[];
             b=[];
-           for i = 1:this.numberOfPoints
+            for i = 1:this.numberOfPoints
                [y, M] = this.pointsIn2D(i).createLSforUndistortion();
                b = [b;y];
                A = [A;M];
-           end
-           x = A\b;
-           
-           kappa_ = [x(1); x(2); x(3)];
-           p_ = [x(4); x(5)];
-           
-           for i = 1:this.numberOfPoints
+            end
+            x = A\b;
+
+            kappa_ = [x(1); x(2); x(3)];
+            p_ = [x(4); x(5)];
+
+            for i = 1:this.numberOfPoints
                this.pointsIn2D(i).undistortion(kappa_,p_);
-           end
-           
+            end
         end % undistortion() end             
         
         
+        %> @brief Fits a line trough a Pointcloud2D
+        %>
+        %> @param PointCloudin2D
+        %>
+        %> @retval estimatedSamples
         function estimatedSamples = linearRegression(PointCloudin2D)
-            
             x = zeros(PointCloudin2D.numberOfPoints,1);
             y = zeros(PointCloudin2D.numberOfPoints,1);
             
@@ -159,15 +128,12 @@ classdef Pointcloud2D < handle
             plot(x,y,'Color','blue');
             hold on
             plot(x,y_hat,'x','Color','red');
-            
-            
-        end
+        end % linearRegression() end
         
         
         %> @brief Plots the projected 2D points
         %>
         %> @param this Pointer to object
-        %> @param figureHandle Handle to figure
         function plotImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
@@ -228,7 +194,6 @@ classdef Pointcloud2D < handle
         %> @brief Plots the noisy 2D points
         %>
         %> @param this Pointer to object
-        %> @param figureHandle Handle to figure
         function plotNoisyPixelPoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
@@ -249,7 +214,6 @@ classdef Pointcloud2D < handle
         %> @brief Plots the noisy 2D points
         %>
         %> @param this Pointer to object
-        %> @param figureHandle Handle to figure
         function plotBackProjectedImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
@@ -265,10 +229,10 @@ classdef Pointcloud2D < handle
             plot(X,Y,'x','Color','magenta')
         end % plotBackProjectedImagePoints() end
         
+        
         %> @brief Plots the projected 2D points
         %>
         %> @param this Pointer to object
-        %> @param figureHandle Handle to figure
         function plotUndistortedImagePoints(this)
             % Declare X and Y vectors
             X = zeros(1,this.numberOfPoints);
@@ -284,6 +248,5 @@ classdef Pointcloud2D < handle
             plot(X,Y,'*','Color','black')
             alpha(.5)
         end % plotProjectedPoints() end
-        
     end % methods end
 end % classdef end
