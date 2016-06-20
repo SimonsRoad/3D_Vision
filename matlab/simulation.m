@@ -68,7 +68,7 @@ camera.projectLinesFrom3DTo2D();
 
 figure(13)
 camera.sampleLines(numberOfSamples);
-camera.measuerementProcess(kappa, p, 'gaussian', linecloudMean, linecloudVariance);
+camera.measuerementProcess(kappa, p, 'gaussian', pixelNoiseMean, pixelNoiseVariance);
 
 
 %% Pose Estimation

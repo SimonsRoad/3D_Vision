@@ -87,7 +87,7 @@ classdef PointIn2D < handle
            b_ = [uvCoordinates(1)/uvCoordinates_(1) - 1; ...
                uvCoordinates(2)/uvCoordinates_(2) - 1];
            A_ = [radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(2) radiusSquared_/uvCoordinates_(1)+2*uvCoordinates_(1);...
-               radiusSquared_ radiusSquared_^2 radiusSquared_^3 2*uvCoordinates_(1) radiusSquared_/uvCoordinates_(2)+2*uvCoordinates_(2)];
+               radiusSquared_ radiusSquared_^2 radiusSquared_^3 radiusSquared_/uvCoordinates_(2)+2*uvCoordinates_(2) 2*uvCoordinates_(1)];
         end % calculateUndistortionCoefficients() end
         
         
