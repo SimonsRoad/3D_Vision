@@ -88,19 +88,6 @@ disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 disp(['Translation Error: ' num2str(errorInTranslation) ' [%]'])
 disp(['Orientation Error: ' num2str(errorInOrientation) '   [degrees]'])
 
-% COMMENT: WE DON'T REALLY NEED THESE ONE FIG3 IS SUFFICIENT
-% % %% Plots
-% % Plot the point cloud of the true points
-% % fig1 = figure(1);
-% % camera.pointCloud3D.plotTruePointcloud();
-
-% % % Plot camera true pose with true point cloud
-% % fig2 = figure(2);
-% % camera.pointCloud3D.plotTruePointcloud();
-% % axis equal
-% % hold on
-% % camera.visualizeTrueCamera(2)
-% % hold off
 
 % % PLOT: SCENE GENERATION
 % Plot camera true pose, true point cloud and point cloud of the noisy points
@@ -185,17 +172,3 @@ camera.visualizeOptimizedCameraWithLines(9);
 legend show
 title('Result Camera Pose Estimation')
 hold off
-
-% COMMENT: DO WE NEED THIS? I DON'T THINK SO...
-% % Plot 3D lines
-% figure(11)
-% hold on
-% camera.lineCloud3D.plotTrueLinecloud();
-% camera.lineCloud3D.plotNoisyLinecloud();
-% hold off
-% 
-% figure(12)
-% hold on
-% camera.lineCloud2D.plotProjectedLines();
-% camera.lineCloud2D.plotNoisyLines();
-% hold off
