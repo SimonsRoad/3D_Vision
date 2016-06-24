@@ -14,7 +14,7 @@ Afterwards, to see the results, run
 
 ### Modify constants in writeParameterFile.m
 
-This section explains the constants with default settings in writeParameterFile.m, which can be modified.
+This section explains the constants with example settings in writeParameterFile.m, which can be modified.
 
 #### Scene Parameters
 
@@ -53,7 +53,7 @@ DEFAULT: for square pixels skew = 0
 
 #### PnP Algorithm
 
-**pnpAlgorithm = 'DLT'** PnP algorithm, selectable between 'EPNP', 'EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
+**pnpAlgorithm = 'DLT'** PnP algorithm, selectable between 'EPNP', 'DLT', 'LHM', 'RPNP'
 
 
 #### Anisotropic Gaussian

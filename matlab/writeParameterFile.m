@@ -27,7 +27,7 @@ kx = 1200;
 ky = 1200;
 
 %% PnP Parameters
-pnpAlgorithm = 'DLT'; % Options: 'EPNP','EPNP-Gauss', 'DLT', 'LHM', 'RPNP'
+pnpAlgorithm = 'DLT'; % Options: 'EPNP', 'DLT', 'LHM', 'RPNP'
 
 %% PointIn3D
 % Noise Models
