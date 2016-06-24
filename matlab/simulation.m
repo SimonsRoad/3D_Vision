@@ -6,23 +6,27 @@ parameterFile = 'parameters.mat';
 load(parameterFile);
 
 %% Set up experiments
-limitOfX = 10;
-numberOfExperiments = 50;
+% limitOfX = 10;
+numberOfExperiments = 100;
+valuesOfX = [0.05, 0.1, 0.15, 0.2, 0.25];
 
 % rows: different number of lines starting from the smallest
 % columns: error for DLT, error for nonlinear optimization with points,
 % error for nonlinear optimization with points and lines
-meanErrorInPosition = zeros(limitOfX, 3);
-meanErrorInOrientation = zeros(limitOfX, 3);
-varianceInPosition = zeros(limitOfX, 3);
-varianceInOrientation = zeros(limitOfX, 3);
+meanErrorInPosition = zeros(length(valuesOfX), 3);
+meanErrorInOrientation = zeros(length(valuesOfX), 3);
+varianceInPosition = zeros(length(valuesOfX), 3);
+varianceInOrientation = zeros(length(valuesOfX), 3);
 
-for i = 1:limitOfX
+counter = 0;
+for i = valuesOfX
+    counter = counter + 1;
     
     % Initialize random number generator
     rng('shuffle','twister')
     
-    numberOfLines = i;
+    linecloudVariance = scale*[0.01; 0.01; i];
+    anisotropicGaussianVariance = scale*[0.01; 0.01; i];
     
 for j = 1:numberOfExperiments
     
@@ -128,21 +132,21 @@ errorInOrientation(j,3) = errorInOrientationLines;
 
 end
 
-meanErrorInPosition(i, 1) = mean(errorInPosition(:,1));
-meanErrorInPosition(i, 2) = mean(errorInPosition(:,2));
-meanErrorInPosition(i, 3) = mean(errorInPosition(:,3));
+meanErrorInPosition(counter, 1) = mean(errorInPosition(:,1));
+meanErrorInPosition(counter, 2) = mean(errorInPosition(:,2));
+meanErrorInPosition(counter, 3) = mean(errorInPosition(:,3));
 
-varianceInPosition(i, 1) = var(errorInPosition(:,1));
-varianceInPosition(i, 2) = var(errorInPosition(:,2));
-varianceInPosition(i, 3) = var(errorInPosition(:,3));
+varianceInPosition(counter, 1) = var(errorInPosition(:,1));
+varianceInPosition(counter, 2) = var(errorInPosition(:,2));
+varianceInPosition(counter, 3) = var(errorInPosition(:,3));
 
-meanErrorInOrientation(i,1) = mean(errorInOrientation(:,1));
-meanErrorInOrientation(i,2) = mean(errorInOrientation(:,2));
-meanErrorInOrientation(i,3) = mean(errorInOrientation(:,3));
+meanErrorInOrientation(counter,1) = mean(errorInOrientation(:,1));
+meanErrorInOrientation(counter,2) = mean(errorInOrientation(:,2));
+meanErrorInOrientation(counter,3) = mean(errorInOrientation(:,3));
 
-varianceInOrientation(i, 1) = var(errorInOrientation(:,1));
-varianceInOrientation(i, 2) = var(errorInOrientation(:,2));
-varianceInOrientation(i, 3) = var(errorInOrientation(:,3));
+varianceInOrientation(counter, 1) = var(errorInOrientation(:,1));
+varianceInOrientation(counter, 2) = var(errorInOrientation(:,2));
+varianceInOrientation(counter, 3) = var(errorInOrientation(:,3));
 
 end
 disp('Mean error in position')
@@ -156,18 +160,18 @@ disp(varianceInOrientation)
 
 figure(10)
 hold on
-plot(1:limitOfX,meanErrorInPosition(:,1))
-plot(1:limitOfX,meanErrorInPosition(:,2))
-plot(1:limitOfX,meanErrorInPosition(:,3))
+plot(1:length(valuesOfX),meanErrorInPosition(:,1))
+plot(1:length(valuesOfX),meanErrorInPosition(:,2))
+plot(1:length(valuesOfX),meanErrorInPosition(:,3))
 title('Mean Error In Position')
 legend('DLT','Points','Points+Lines')
 hold off
 
 figure(11)
 hold on
-plot(1:limitOfX,meanErrorInOrientation(:,1))
-plot(1:limitOfX,meanErrorInOrientation(:,2))
-plot(1:limitOfX,meanErrorInOrientation(:,3))
+plot(1:length(valuesOfX),meanErrorInOrientation(:,1))
+plot(1:length(valuesOfX),meanErrorInOrientation(:,2))
+plot(1:length(valuesOfX),meanErrorInOrientation(:,3))
 title('Mean Error In Orientation')
 legend('DLT','Points','Points+Lines')
 hold off
@@ -176,9 +180,9 @@ hold off
 
 figure(12)
 hold on
-plot(1:limitOfX,varianceInPosition(:,1))
-plot(1:limitOfX,varianceInPosition(:,2))
-plot(1:limitOfX,varianceInPosition(:,3))
+plot(1:length(valuesOfX),varianceInPosition(:,1))
+plot(1:length(valuesOfX),varianceInPosition(:,2))
+plot(1:length(valuesOfX),varianceInPosition(:,3))
 title('Variance In Position')
 legend('DLT','Points','Points+Lines')
 hold off
@@ -186,9 +190,9 @@ hold off
 figure(13)
 colormap(linspecer)
 hold on
-plot(1:limitOfX,varianceInOrientation(:,1))
-plot(1:limitOfX,varianceInOrientation(:,2))
-plot(1:limitOfX,varianceInOrientation(:,3))
+plot(1:length(valuesOfX),varianceInOrientation(:,1))
+plot(1:length(valuesOfX),varianceInOrientation(:,2))
+plot(1:length(valuesOfX),varianceInOrientation(:,3))
 title('Variance In Orientation')
 legend('DLT','Points','Points+Lines')
 hold off

@@ -1,0 +1,62 @@
+% This file was created by matlab2tikz.
+% Minimal pgfplots version: 1.3
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+\definecolor{mycolor3}{rgb}{0.92900,0.69400,0.12500}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=6.027778in,
+height=4.754167in,
+at={(1.011111in,0.641667in)},
+scale only axis,
+tick label style={/pgf/number format/fixed},
+xmin=1,
+xmax=5,
+xtick={1, 2, 3, 4, 5},
+ymin=0,
+ymax=3.5,
+title style={font=\bfseries},
+title={Variance In Position},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left,align=left,draw=white!15!black}
+]
+\addplot [color=mycolor1,solid]
+  table[row sep=crcr]{%
+1	0.143734988162791\\
+2	0.0070921856269299\\
+3	0.0702406442444644\\
+4	0.106022922423908\\
+5	3.16935347429121\\
+};
+\addlegendentry{DLT};
+
+\addplot [color=mycolor2,solid]
+  table[row sep=crcr]{%
+1	0.0099332748444669\\
+2	0.0863852152743919\\
+3	0.0356713783081472\\
+4	0.0739222737311874\\
+5	0.025896249877782\\
+};
+\addlegendentry{Points};
+
+\addplot [color=mycolor3,solid]
+  table[row sep=crcr]{%
+1	0.015709374859255\\
+2	0.00564662567941857\\
+3	0.0197798447609121\\
+4	0.0298342139240059\\
+5	3.2173650470379\\
+};
+\addlegendentry{Points+Lines};
+
+\end{axis}
+\end{tikzpicture}%

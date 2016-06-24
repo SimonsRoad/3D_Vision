@@ -4,8 +4,8 @@ clear all
 
 %% Scene Parameters
 scale = 1;
-numberOfPoints = 200;
-numberOfLines = 3;
+numberOfPoints = 20;
+numberOfLines = 4;
 
 shape = 'spherical'; % Options: 'spherical', 'planar', 'cubic'
 pointCloudRadius = 1;
