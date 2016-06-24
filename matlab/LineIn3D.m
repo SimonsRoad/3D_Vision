@@ -118,7 +118,7 @@ classdef LineIn3D < handle
             Z = [this.startPoint.trueCoordinatesInWorldFrame(3), this.endPoint.trueCoordinatesInWorldFrame(3)];
             
             % Plot the line
-            plot3(X, Y, Z,'Color','blue');
+            plot3(X, Y, Z,'Color','blue','DisplayName', 'True 3D Lines');
         end % plotTrueLine() end
         
         
@@ -132,7 +132,7 @@ classdef LineIn3D < handle
             Z = [this.startPoint.noisyCoordinatesInWorldFrame(3), this.endPoint.noisyCoordinatesInWorldFrame(3)];
             
             % Plot the line
-            plot3(X ,Y ,Z ,'Color','red');
+            plot3(X ,Y ,Z ,'Color','black','DisplayName', 'Noisy 3D Lines');
         end % plotNoisyLine() end
     end % methods end
 end % classdef end

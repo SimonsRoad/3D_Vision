@@ -125,9 +125,10 @@ classdef Pointcloud2D < handle
             estimatedSamples = pointcloud2D;
             %estimatedSamples = Pointcloud2D(pointcloud2D);
             
-            plot(x,y,'Color','blue');
-            hold on
-            plot(x,y_hat,'x','Color','red');
+%             plot(x,y,'Color','blue');
+%             hold on
+%             plot(x,y_hat,'x','Color','red');
+            
         end % linearRegression() end
         
         
@@ -146,7 +147,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'o','Color','blue')
+            plot(X,Y,'o','Color','blue','DisplayName', 'True 3D Pointcloud Projection')
             alpha(.5)
         end % plotProjectedPoints() end
         
@@ -166,7 +167,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'+','Color','green')
+            plot(X,Y,'+','Color','green','DisplayName', 'Distorted True 3D Pointcloud Projection')
             alpha(.5)
         end % plotDistortedImagePoints() end
         
@@ -186,7 +187,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'+','Color','green')
+            plot(X,Y,'+','Color','green','DisplayName', 'Distorted True 3D Pointcloud in Pixel Coordinates')
             alpha(.5)
         end % plotDistortedPixelPoints() end
         
@@ -206,7 +207,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'x','Color','magenta')
+            plot(X,Y,'x','Color','magenta','DisplayName', 'Distorted True 3D Pointcloud in Pixel Coordinates with Pixelnoise')
             alpha(.5)
         end % plotNoisyPoints() end
         
@@ -226,7 +227,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'x','Color','magenta')
+            plot(X,Y,'x','Color','magenta','DisplayName', 'Distorted True 3D Pointcloud with Pixelnoise on Image Plane')
         end % plotBackProjectedImagePoints() end
         
         
@@ -245,7 +246,7 @@ classdef Pointcloud2D < handle
             end % for loop end
             
             % plot projected 2D points
-            plot(X,Y,'*','Color','black')
+            plot(X,Y,'*','Color','black','DisplayName', 'Undistorted True 3D Pointcloud with Pixelnoise on Image Plane')
             alpha(.5)
         end % plotProjectedPoints() end
     end % methods end

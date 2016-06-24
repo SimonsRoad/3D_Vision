@@ -87,10 +87,19 @@ classdef Linecloud3D < handle
         %>
         %> @param this Pointer to this object
         function plotTrueLinecloud(this)
+            X = zeros(this.numberOfLines,2);
+            Y = zeros(this.numberOfLines,2);
+            Z = zeros(this.numberOfLines,2);
             % Plot every line seperately
             for i = 1:this.numberOfLines
-                this.linesIn3D(i).plotTrueLine();
+                %this.linesIn3D(i).plotTrueLine();
+                X(i,:) = [this.linesIn3D(i).startPoint.trueCoordinatesInWorldFrame(1),this.linesIn3D(i).endPoint.trueCoordinatesInWorldFrame(1)];
+                Y(i,:) = [this.linesIn3D(i).startPoint.trueCoordinatesInWorldFrame(2),this.linesIn3D(i).endPoint.trueCoordinatesInWorldFrame(2)];
+                Z(i,:) = [this.linesIn3D(i).startPoint.trueCoordinatesInWorldFrame(3),this.linesIn3D(i).endPoint.trueCoordinatesInWorldFrame(3)];
             end
+            
+            % Plot the line
+            plot3(X', Y', Z','Color','blue','DisplayName', 'True 3D Line');
         end % plotTrueLinecloud() end
         
         
@@ -98,10 +107,19 @@ classdef Linecloud3D < handle
         %>
         %> @param this Pointer to this object
         function plotNoisyLinecloud(this)
+            X = zeros(this.numberOfLines,2);
+            Y = zeros(this.numberOfLines,2);
+            Z = zeros(this.numberOfLines,2);
             % Plot every line seperately
             for i = 1:this.numberOfLines
-                this.linesIn3D(i).plotNoisyLine();
+                %this.linesIn3D(i).plotNoisyLine();
+                X(i,:) = [this.linesIn3D(i).startPoint.noisyCoordinatesInWorldFrame(1),this.linesIn3D(i).endPoint.noisyCoordinatesInWorldFrame(1)];
+                Y(i,:) = [this.linesIn3D(i).startPoint.noisyCoordinatesInWorldFrame(2),this.linesIn3D(i).endPoint.noisyCoordinatesInWorldFrame(2)];
+                Z(i,:) = [this.linesIn3D(i).startPoint.noisyCoordinatesInWorldFrame(3),this.linesIn3D(i).endPoint.noisyCoordinatesInWorldFrame(3)];
             end
+            
+            % Plot the line
+            plot3(X', Y', Z','Color','red','DisplayName', 'Noisy 3D Line');
         end % plotTrueNoisycloud() end
         
         

@@ -124,19 +124,19 @@ classdef Camera < handle
            
            % Camera Centers
            truePosition = trueRotation' * trueTranslation;
-           plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1]);
+           plot3(truePosition(1), truePosition(2), truePosition(3),'o','Color',[0 0 1],'DisplayName', 'True Camera Pose');
            
            % Camera frame of true pose
            P1 = truePosition;
            P2 = truePosition+trueRotation'*[1; 0; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3))
+           line(P(:,1), P(:,2), P(:,3), 'HandleVisibility','off')
            P2 = truePosition+trueRotation'*[0; 1; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3))
+           line(P(:,1), P(:,2), P(:,3), 'HandleVisibility','off')
            P2 = truePosition+trueRotation'*[0; 0; 1];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3))
+           line(P(:,1), P(:,2), P(:,3), 'HandleVisibility','off')
        end % visualizeCamera() end
        
        
@@ -157,21 +157,21 @@ classdef Camera < handle
            
            % Camera center
            estimatedPosition = estimatedRotation' * estimatedTranslation;
-           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0]);
+           plot3(estimatedPosition(1), estimatedPosition(2), estimatedPosition(3),'x','Color',[1 0 0],'DisplayName', 'Estimated Camera Pose');
            
            % Camera frame of estimated pose
            P1 = estimatedPosition;
            P2 = estimatedPosition+estimatedRotation'*[1; 0; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red', 'HandleVisibility','off')
            P1 = estimatedPosition;
            P2 = estimatedPosition+estimatedRotation'*[0; 1; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red', 'HandleVisibility','off')
            P1 = estimatedPosition;
            P2 = estimatedPosition+estimatedRotation'*[0; 0; 1];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'color', 'red')
+           line(P(:,1), P(:,2), P(:,3), 'color', 'red', 'HandleVisibility','off')
        end % visualizeEstimatedCamera() end
        
        
@@ -192,21 +192,21 @@ classdef Camera < handle
            
            % Camera center
            optimizedPosition = optimizedRotation' * optimizedTranslation;
-           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 0]);
+           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 0],'DisplayName', 'Optimized Estimated Camera Pose');
            
            % Camera frame of estimated pose
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[1; 0; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0], 'HandleVisibility','off')
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[0; 1; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0], 'HandleVisibility','off')
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 0], 'HandleVisibility','off')
        end % visualizeOptimizedCamera() end
        
        
@@ -227,21 +227,21 @@ classdef Camera < handle
            
            % Camera center
            optimizedPosition = optimizedRotation' * optimizedTranslation;
-           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 1]);
+           plot3(optimizedPosition(1), optimizedPosition(2), optimizedPosition(3),'x','Color',[0 1 1],'DisplayName', 'Optimized Estimated Camera Pose with Lines');
            
            % Camera frame of estimated pose
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[1; 0; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1], 'HandleVisibility','off')
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[0; 1; 0];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1], 'HandleVisibility','off')
            P1 = optimizedPosition;
            P2 = optimizedPosition+optimizedRotation'*[0; 0; 1];
            P = [P1'; P2'];
-           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1])
+           line(P(:,1), P(:,2), P(:,3), 'Color', [0 1 1], 'HandleVisibility','off')
        end % visualizeOptimizedCameraWithLines() end
        
        

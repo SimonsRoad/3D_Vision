@@ -104,8 +104,8 @@ classdef Pointcloud3D < handle
                     Y(i) = this.pointsIn3D(i).trueCoordinatesInWorldFrame(2);
                     Z(i) = this.pointsIn3D(i).trueCoordinatesInWorldFrame(3);
             end
+            plot3(X',Y',Z','.','markers',10,'Color','blue','DisplayName', 'True 3D Pointcloud')
             
-            plot3(X',Y',Z','.','markers',10,'Color','blue')
         end % plotTruePointcloud() end
         
         
@@ -136,8 +136,8 @@ classdef Pointcloud3D < handle
                     Z(i) = this.pointsIn3D(i).noisyCoordinatesInWorldFrame(3);
             end
             
-            plot3(X',Y',Z','.','markers',10,'Color','red')
-
+            plot3(X',Y',Z','.','markers',10,'Color','red','DisplayName', 'Noisy 3D Pointcloud')
+      
             if strcmp(plotConnectingLines,'true')
                 hold on
                 for i = 1:this.numberOfPoints

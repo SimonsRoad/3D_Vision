@@ -91,7 +91,7 @@ matrixOfReprojectedPoints = reprojectPoints(pose(1),pose(2),pose(3),pose(4),pose
 matrixOfPointReprojectionError = matrixOfReprojectedPoints - matrixOf2DPoints;
 disp(['Norm of reprojection error of initial estimation: ' num2str(norm(matrixOfPointReprojectionError))])
 
-figure(20)
+figure(2)
 
 updateStep = Inf;
 iter = 1;
@@ -142,31 +142,37 @@ while( norm(updateStep) > TOL && iter <= MAX_ITER )
     
     %% Debug: Plot reprojected lines for each iteration
     hold on
+    hgrey = zeros(lineCloud2D.numberOfLines,1);
     for i = 1:lineCloud2D.numberOfLines
         X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
         Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
-        plot(X, Y, 'Color', [0.9, 0.9, 0.9])
+        hgrey(i) = plot(X, Y, 'Color', [0.9, 0.9, 0.9],'DisplayName', 'Iteration Step Line');
     end
 end
 
 hold on
 matrixOfInitialReprojection = reprojectLines(x0, y0, z0, alpha0, beta0, gamma0,lineCloud3D,f);
+hred = zeros(lineCloud2D.numberOfLines,1);
+hblue = zeros(lineCloud2D.numberOfLines,1);
+hcyan = zeros(lineCloud2D.numberOfLines,1);
 for i = 1:lineCloud2D.numberOfLines
     X = [matrixOfInitialReprojection(2*(i-1)+1,1), matrixOfInitialReprojection(2*(i-1)+1,2)];
     Y = [matrixOfInitialReprojection(2*(i-1)+2,1), matrixOfInitialReprojection(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'red')
+    hred(i) = plot(X, Y, 'Color', 'red','DisplayName', 'Initial Position Line');
 end
 for i = 1:lineCloud2D.numberOfLines
     X = [matrixOf2DLines(2*(i-1)+1,1), matrixOf2DLines(2*(i-1)+1,2)];
     Y = [matrixOf2DLines(2*(i-1)+2,1), matrixOf2DLines(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'blue')
+    hblue(i) = plot(X, Y, 'Color', 'blue','DisplayName', 'True Position Line');
 end
 matrixOfReprojectedLines = reprojectLines(pose(1),pose(2),pose(3),pose(4),pose(5),pose(6),lineCloud3D,f);
 for i = 1:lineCloud2D.numberOfLines
     X = [matrixOfReprojectedLines(2*(i-1)+1,1), matrixOfReprojectedLines(2*(i-1)+1,2)];
     Y = [matrixOfReprojectedLines(2*(i-1)+2,1), matrixOfReprojectedLines(2*(i-1)+2,2)];
-    plot(X, Y, 'Color', 'cyan')
+    hcyan(i) = plot(X, Y, 'Color', 'cyan','DisplayName', 'Optimized Position Line');
 end
+legend([hgrey(1) hred(1) hblue(1) hcyan(1)],{'Iteration Step Line','Initial Position Line','True Position Line','Optimized Position Line'});
+title('Iteration Steps of Optimization')
 hold off
 
 if (iter > MAX_ITER)
